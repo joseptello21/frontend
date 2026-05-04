@@ -19,22 +19,10 @@
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
     "@fortawesome/fontawesome-free": "^7.2.0",
+    "http-server": "^14.1.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "^0.16.1"
-  },
-  "dependencies": {
-    "@angular/common": "^21.2.0",
-    "@angular/compiler": "^21.2.0",
-    "@angular/core": "^21.2.0",
-    "@angular/forms": "^21.2.0",
-    "@angular/platform-browser": "^21.2.0",
-    "@angular/router": "^21.2.0",
-    "@fortawesome/fontawesome-free": "^7.2.0",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
-    "zone.js": "^0.16.1",
-    "http-server": "^14.1.1"
   },
   "devDependencies": {
     "@angular/build": "^21.2.8",
