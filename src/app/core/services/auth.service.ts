@@ -99,6 +99,6 @@ export class AuthService {
 
     isAdmin(): boolean {
         const user = this.currentUser();
-        return user?.email === 'admin' || user?.username === 'admin';
+        return user?.email === 'admin@gmail.com' || user?.username === 'admin@gmail.com';
     }
 }
