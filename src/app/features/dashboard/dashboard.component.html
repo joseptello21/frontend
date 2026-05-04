@@ -1,0 +1,101 @@
+<div class="dashboard">
+
+  <section class="welcome-card">
+    <div>
+      <h2>Bienvenido, {{ usuario?.username || 'Usuario' }}</h2>
+      <p>Panel de control del sistema IoT</p>
+    </div>
+
+    <div class="badge">
+      Activo
+    </div>
+  </section>
+
+  <section class="quick-access">
+    <h3>Acceso rápido a datos</h3>
+    <div class="access-grid">
+      <a routerLink="/data-view" class="access-card">
+        <i class="fa-solid fa-table"></i>
+        <span>Ver todas las tablas</span>
+      </a>
+      <a routerLink="/dispositivos" class="access-card">
+        <i class="fa-solid fa-microchip"></i>
+        <span>Dispositivos</span>
+      </a>
+      <a routerLink="/luminarias" class="access-card">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span>Luminarias</span>
+      </a>
+      <a routerLink="/sensores" class="access-card">
+        <i class="fa-solid fa-gauge"></i>
+        <span>Sensores</span>
+      </a>
+      <a routerLink="/baterias" class="access-card">
+        <i class="fa-solid fa-battery-half"></i>
+        <span>Baterías</span>
+      </a>
+      <a routerLink="/usuarios" class="access-card">
+        <i class="fa-solid fa-users"></i>
+        <span>Usuarios</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Mostrar datos de ejemplo directamente -->
+  <section class="data-preview">
+    <h3>Datos del sistema (Vista previa)</h3>
+
+    <div class="preview-grid">
+      <div class="preview-card">
+        <h4>Dispositivos IoT</h4>
+        <p><strong>3</strong> dispositivos registrados</p>
+        <ul>
+          <li>Sensor Temperatura 1 - Activo</li>
+          <li>Sensor Humedad 1 - Activo</li>
+          <li>Controlador LED 1 - Inactivo</li>
+        </ul>
+      </div>
+
+      <div class="preview-card">
+        <h4>Luminarias</h4>
+        <p><strong>3</strong> luminarias registradas</p>
+        <ul>
+          <li>LED 50W - Activo</li>
+          <li>Fluorescente 75W - Activo</li>
+          <li>LED 30W - Inactivo</li>
+        </ul>
+      </div>
+
+      <div class="preview-card">
+        <h4>Sensores</h4>
+        <p><strong>3</strong> sensores registrados</p>
+        <ul>
+          <li>Temperatura (°C)</li>
+          <li>Humedad (%)</li>
+          <li>Luminosidad (lux)</li>
+        </ul>
+      </div>
+
+      <div class="preview-card">
+        <h4>Baterías</h4>
+        <p><strong>3</strong> baterías registradas</p>
+        <ul>
+          <li>100Ah 12V - Activo</li>
+          <li>150Ah 24V - Activo</li>
+          <li>80Ah 12V - Inactivo</li>
+        </ul>
+      </div>
+
+      <div class="preview-card">
+        <h4>Usuarios</h4>
+        <p><strong>3</strong> usuarios registrados</p>
+        <ul>
+          <li>admin - Activo</li>
+          <li>demo - Activo</li>
+          <li>user1 - Inactivo</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>

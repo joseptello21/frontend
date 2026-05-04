@@ -1,0 +1,669 @@
+<section class="security-page">
+
+  <div class="hero-panel">
+    <div class="hero-content">
+      <span class="eyebrow">
+        <i class="fa-solid fa-shield-halved"></i>
+        Seguridad y control de acceso
+      </span>
+
+      <h2>Roles y recursos</h2>
+
+      <p>
+        Administre perfiles, vistas, permisos y asignaciones de usuarios desde un panel centralizado,
+        seguro y organizado.
+      </p>
+
+      <div class="hero-badges">
+        <span>
+          <i class="fa-solid fa-user-shield"></i>
+          {{ totalRolesActivos() }} roles activos
+        </span>
+
+        <span>
+          <i class="fa-solid fa-sitemap"></i>
+          {{ totalRecursosActivos() }} recursos activos
+        </span>
+
+        <span>
+          <i class="fa-solid fa-key"></i>
+          {{ rolesRecursos.length }} permisos
+        </span>
+      </div>
+    </div>
+
+    <div class="hero-actions">
+      <button class="btn btn-light" type="button" (click)="cargarDatos(false)" [disabled]="loading || refreshing">
+        <i class="fa-solid fa-rotate" [class.spin]="refreshing"></i>
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <article class="metric-card">
+      <div class="metric-icon blue">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+
+      <div>
+        <h3>{{ roles.length }}</h3>
+        <p>Roles registrados</p>
+        <small>{{ totalRolesActivos() }} activos</small>
+      </div>
+    </article>
+
+    <article class="metric-card">
+      <div class="metric-icon green">
+        <i class="fa-solid fa-sitemap"></i>
+      </div>
+
+      <div>
+        <h3>{{ recursos.length }}</h3>
+        <p>Recursos del sistema</p>
+        <small>{{ totalRecursosActivos() }} activos</small>
+      </div>
+    </article>
+
+    <article class="metric-card">
+      <div class="metric-icon purple">
+        <i class="fa-solid fa-users"></i>
+      </div>
+
+      <div>
+        <h3>{{ usuarios.length }}</h3>
+        <p>Usuarios registrados</p>
+        <small>{{ totalUsuariosConRol() }} con rol asignado</small>
+      </div>
+    </article>
+
+    <article class="metric-card">
+      <div class="metric-icon amber">
+        <i class="fa-solid fa-key"></i>
+      </div>
+
+      <div>
+        <h3>{{ rolesRecursos.length }}</h3>
+        <p>Permisos asignados</p>
+        <small>Promedio: {{ promedioPermisosPorRol() }} por rol</small>
+      </div>
+    </article>
+  </div>
+
+  <div class="message success" *ngIf="successMessage">
+    <i class="fa-solid fa-circle-check"></i>
+    <span>{{ successMessage }}</span>
+  </div>
+
+  <div class="message error" *ngIf="errorMessage">
+    <i class="fa-solid fa-circle-exclamation"></i>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <section class="workspace-card">
+
+    <div class="tabs">
+      <button type="button" [class.active]="tabActiva === 'roles'" (click)="cambiarTab('roles')">
+        <i class="fa-solid fa-user-shield"></i>
+        <span>Roles</span>
+        <strong>{{ roles.length }}</strong>
+      </button>
+
+      <button type="button" [class.active]="tabActiva === 'recursos'" (click)="cambiarTab('recursos')">
+        <i class="fa-solid fa-sitemap"></i>
+        <span>Recursos</span>
+        <strong>{{ recursos.length }}</strong>
+      </button>
+
+      <button type="button" [class.active]="tabActiva === 'usuariosRoles'" (click)="cambiarTab('usuariosRoles')">
+        <i class="fa-solid fa-users-gear"></i>
+        <span>Usuarios y roles</span>
+        <strong>{{ usuariosRoles.length }}</strong>
+      </button>
+
+      <button type="button" [class.active]="tabActiva === 'permisos'" (click)="cambiarTab('permisos')">
+        <i class="fa-solid fa-lock"></i>
+        <span>Permisos por rol</span>
+        <strong>{{ rolesRecursos.length }}</strong>
+      </button>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      <span class="loader"></span>
+      <div>
+        <strong>Cargando información de seguridad...</strong>
+        <small>Consultando roles, recursos, usuarios y permisos.</small>
+      </div>
+    </div>
+
+    <ng-container *ngIf="!loading">
+
+      <div class="tab-panel" *ngIf="tabActiva === 'roles'">
+
+        <div class="panel-header">
+          <div>
+            <h3>Roles del sistema</h3>
+            <p>Defina perfiles de acceso para agrupar usuarios, vistas y permisos.</p>
+          </div>
+
+          <button class="btn btn-primary" type="button" (click)="abrirModalCrearRol()">
+            <i class="fa-solid fa-plus"></i>
+            Nuevo rol
+          </button>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-control">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              placeholder="Buscar por nombre, descripción o estado..."
+              [value]="searchRoles"
+              (input)="buscarRoles($event)">
+          </div>
+
+          <div class="filter-group">
+            <button type="button" [class.active]="filtroEstadoRoles === 'TODOS'" (click)="cambiarFiltroRoles('TODOS')">Todos</button>
+            <button type="button" [class.active]="filtroEstadoRoles === 'ACTIVO'" (click)="cambiarFiltroRoles('ACTIVO')">Activos</button>
+            <button type="button" [class.active]="filtroEstadoRoles === 'INACTIVO'" (click)="cambiarFiltroRoles('INACTIVO')">Inactivos</button>
+          </div>
+
+          <button
+            class="clear-button"
+            type="button"
+            *ngIf="searchRoles || filtroEstadoRoles !== 'TODOS'"
+            (click)="limpiarFiltroRoles()">
+            <i class="fa-solid fa-xmark"></i>
+            Limpiar
+          </button>
+        </div>
+
+        <div class="empty-state" *ngIf="rolesFiltrados.length === 0">
+          <i class="fa-solid fa-user-shield"></i>
+          <h4>No hay roles para mostrar</h4>
+          <p>Registre un nuevo rol o ajuste los filtros de búsqueda.</p>
+        </div>
+
+        <div class="roles-grid" *ngIf="rolesFiltrados.length > 0">
+          <article class="role-card" *ngFor="let rol of rolesFiltrados; trackBy: trackByRol">
+
+            <div class="role-card-header">
+              <div class="role-icon">
+                <i class="fa-solid fa-user-shield"></i>
+              </div>
+
+              <span class="status-pill" [class.active]="estaActivo(rol.estado)">
+                <i class="fa-solid fa-circle"></i>
+                {{ rol.estado }}
+              </span>
+            </div>
+
+            <h4>{{ rol.nombre }}</h4>
+
+            <p>
+              {{ rol.descripcion || 'Rol del sistema para control de acceso, asignación de permisos y administración de vistas.' }}
+            </p>
+
+            <div class="role-details">
+              <div>
+                <strong>{{ obtenerUsuariosDelRol(rol.idrol) }}</strong>
+                <span>usuarios</span>
+              </div>
+
+              <div>
+                <strong>{{ obtenerRecursosDelRol(rol.idrol).length }}</strong>
+                <span>recursos</span>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <button class="action-button edit" type="button" title="Editar rol" (click)="abrirModalEditarRol(rol)">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+
+              <button
+                class="action-button delete"
+                type="button"
+                title="Eliminar rol"
+                [disabled]="deletingRolId === rol.idrol"
+                (click)="eliminarRol(rol)">
+                <i
+                  class="fa-solid"
+                  [class.fa-trash]="deletingRolId !== rol.idrol"
+                  [class.fa-spinner]="deletingRolId === rol.idrol"
+                  [class.spin]="deletingRolId === rol.idrol">
+                </i>
+              </button>
+            </div>
+
+          </article>
+        </div>
+
+      </div>
+
+      <div class="tab-panel" *ngIf="tabActiva === 'recursos'">
+
+        <div class="panel-header">
+          <div>
+            <h3>Recursos del sistema</h3>
+            <p>Administre las rutas del backend y las vistas del frontend que se asignan a los roles.</p>
+          </div>
+
+          <button class="btn btn-primary" type="button" (click)="abrirModalCrearRecurso()">
+            <i class="fa-solid fa-plus"></i>
+            Nuevo recurso
+          </button>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-control">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              placeholder="Buscar recurso, ruta backend o ruta frontend..."
+              [value]="searchRecursos"
+              (input)="buscarRecursos($event)">
+          </div>
+
+          <div class="filter-group">
+            <button type="button" [class.active]="filtroEstadoRecursos === 'TODOS'" (click)="cambiarFiltroRecursos('TODOS')">Todos</button>
+            <button type="button" [class.active]="filtroEstadoRecursos === 'ACTIVO'" (click)="cambiarFiltroRecursos('ACTIVO')">Activos</button>
+            <button type="button" [class.active]="filtroEstadoRecursos === 'INACTIVO'" (click)="cambiarFiltroRecursos('INACTIVO')">Inactivos</button>
+          </div>
+
+          <button
+            class="clear-button"
+            type="button"
+            *ngIf="searchRecursos || filtroEstadoRecursos !== 'TODOS'"
+            (click)="limpiarFiltroRecursos()">
+            <i class="fa-solid fa-xmark"></i>
+            Limpiar
+          </button>
+        </div>
+
+        <div class="empty-state" *ngIf="recursosFiltrados.length === 0">
+          <i class="fa-solid fa-sitemap"></i>
+          <h4>No hay recursos para mostrar</h4>
+          <p>Registre un nuevo recurso o ajuste los filtros de búsqueda.</p>
+        </div>
+
+        <div class="resource-list" *ngIf="recursosFiltrados.length > 0">
+          <article class="resource-row" *ngFor="let recurso of recursosFiltrados; trackBy: trackByRecurso">
+
+            <div class="resource-main">
+              <div class="resource-icon">
+                <i [class]="obtenerIconoRecurso(recurso)"></i>
+              </div>
+
+              <div>
+                <h4>{{ recurso.nombre }}</h4>
+                <p>{{ recurso.url_frontend || 'Sin ruta frontend' }}</p>
+              </div>
+            </div>
+
+            <div class="resource-meta">
+              <span>Backend</span>
+              <code>{{ recurso.url_backend || 'No definido' }}</code>
+            </div>
+
+            <div class="resource-meta">
+              <span>Path</span>
+              <code>{{ recurso.path || 'No definido' }}</code>
+            </div>
+
+            <div class="resource-meta compact">
+              <span>Orden</span>
+              <strong>{{ recurso.orden }}</strong>
+            </div>
+
+            <span class="status-pill" [class.active]="estaActivo(recurso.estado)">
+              <i class="fa-solid fa-circle"></i>
+              {{ recurso.estado }}
+            </span>
+
+            <div class="row-actions">
+              <button class="action-button edit" type="button" title="Editar recurso" (click)="abrirModalEditarRecurso(recurso)">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+
+              <button
+                class="action-button delete"
+                type="button"
+                title="Eliminar recurso"
+                [disabled]="deletingRecursoId === recurso.idRecursos"
+                (click)="eliminarRecurso(recurso)">
+                <i
+                  class="fa-solid"
+                  [class.fa-trash]="deletingRecursoId !== recurso.idRecursos"
+                  [class.fa-spinner]="deletingRecursoId === recurso.idRecursos"
+                  [class.spin]="deletingRecursoId === recurso.idRecursos">
+                </i>
+              </button>
+            </div>
+
+          </article>
+        </div>
+
+      </div>
+
+      <div class="tab-panel" *ngIf="tabActiva === 'usuariosRoles'">
+
+        <div class="panel-header">
+          <div>
+            <h3>Usuarios y roles</h3>
+            <p>Active o desactive los roles asignados a cada usuario del sistema.</p>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-control">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              placeholder="Buscar usuario por nombre, correo o estado..."
+              [value]="searchUsuarios"
+              (input)="buscarUsuarios($event)">
+          </div>
+
+          <div class="filter-group">
+            <button type="button" [class.active]="filtroEstadoUsuarios === 'TODOS'" (click)="cambiarFiltroUsuarios('TODOS')">Todos</button>
+            <button type="button" [class.active]="filtroEstadoUsuarios === 'ACTIVO'" (click)="cambiarFiltroUsuarios('ACTIVO')">Activos</button>
+            <button type="button" [class.active]="filtroEstadoUsuarios === 'INACTIVO'" (click)="cambiarFiltroUsuarios('INACTIVO')">Inactivos</button>
+          </div>
+
+          <button
+            class="clear-button"
+            type="button"
+            *ngIf="searchUsuarios || filtroEstadoUsuarios !== 'TODOS'"
+            (click)="limpiarFiltroUsuarios()">
+            <i class="fa-solid fa-xmark"></i>
+            Limpiar
+          </button>
+        </div>
+
+        <div class="empty-state" *ngIf="usuariosFiltrados.length === 0">
+          <i class="fa-solid fa-users"></i>
+          <h4>No hay usuarios para mostrar</h4>
+          <p>No se encontraron usuarios con los filtros actuales.</p>
+        </div>
+
+        <div class="user-role-list" *ngIf="usuariosFiltrados.length > 0">
+          <article class="user-role-card" *ngFor="let usuario of usuariosFiltrados; trackBy: trackByUsuario">
+
+            <div class="user-header">
+              <div class="user-avatar">
+                {{ obtenerInicialUsuario(usuario) }}
+              </div>
+
+              <div>
+                <h4>{{ obtenerNombreUsuario(usuario.idusuarios) }}</h4>
+                <p>{{ usuario.email || 'Sin correo registrado' }}</p>
+              </div>
+
+              <span class="status-pill" [class.active]="estaActivo(usuario.estado)">
+                {{ usuario.estado }}
+              </span>
+            </div>
+
+            <div class="role-toggle-list">
+              <label class="toggle-item" *ngFor="let rol of roles; trackBy: trackByRol">
+                <div>
+                  <strong>{{ rol.nombre }}</strong>
+                  <small>{{ rol.descripcion || 'Rol del sistema' }}</small>
+                </div>
+
+                <input
+                  type="checkbox"
+                  [checked]="usuarioTieneRol(usuario.idusuarios, rol.idrol)"
+                  [disabled]="relacionProcesando('usuario-' + usuario.idusuarios + '-rol-' + rol.idrol)"
+                  (change)="toggleRolUsuario(usuario, rol, $event)">
+
+                <span></span>
+              </label>
+            </div>
+
+          </article>
+        </div>
+
+      </div>
+
+      <div class="tab-panel" *ngIf="tabActiva === 'permisos'">
+
+        <div class="panel-header">
+          <div>
+            <h3>Permisos por rol</h3>
+            <p>Active los recursos o vistas que cada rol podrá visualizar dentro del sistema.</p>
+          </div>
+        </div>
+
+        <div class="permission-grid">
+          <article class="permission-card" *ngFor="let rol of roles; trackBy: trackByRol">
+
+            <div class="permission-header">
+              <div class="role-icon small">
+                <i class="fa-solid fa-user-shield"></i>
+              </div>
+
+              <div>
+                <h4>{{ rol.nombre }}</h4>
+                <p>{{ obtenerRecursosDelRol(rol.idrol).length }} recursos asignados</p>
+              </div>
+
+              <span class="status-pill" [class.active]="estaActivo(rol.estado)">
+                {{ rol.estado }}
+              </span>
+            </div>
+
+            <div class="resource-toggle-list">
+              <label class="toggle-item resource-toggle" *ngFor="let recurso of recursos; trackBy: trackByRecurso">
+
+                <div class="resource-toggle-info">
+                  <i [class]="obtenerIconoRecurso(recurso)"></i>
+
+                  <div>
+                    <strong>{{ recurso.nombre }}</strong>
+                    <small>{{ recurso.url_frontend || recurso.url_backend || 'Sin ruta' }}</small>
+                  </div>
+                </div>
+
+                <input
+                  type="checkbox"
+                  [checked]="rolTieneRecurso(rol.idrol, recurso.idRecursos)"
+                  [disabled]="relacionProcesando('rol-' + rol.idrol + '-recurso-' + recurso.idRecursos)"
+                  (change)="toggleRecursoRol(rol, recurso, $event)">
+
+                <span></span>
+              </label>
+            </div>
+
+          </article>
+        </div>
+
+      </div>
+
+    </ng-container>
+
+  </section>
+
+</section>
+
+<div class="modal-backdrop" *ngIf="modalRolVisible">
+  <div class="modal-shell">
+
+    <div class="modal-aside">
+      <div class="modal-icon">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+
+      <h3>{{ modoEdicionRol ? 'Editar rol' : 'Nuevo rol' }}</h3>
+
+      <p>
+        Los roles permiten agrupar usuarios y controlar qué recursos podrán visualizar dentro del sistema.
+      </p>
+    </div>
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <div>
+          <h3>Información del rol</h3>
+          <p>Complete los datos principales del perfil de acceso.</p>
+        </div>
+
+        <button type="button" class="close-button" (click)="cerrarModalRol()" [disabled]="saving">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label>Nombre del rol *</label>
+        <input
+          type="text"
+          name="rolNombre"
+          [(ngModel)]="rolForm.nombre"
+          placeholder="Ej: Administrador">
+      </div>
+
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea
+          name="rolDescripcion"
+          [(ngModel)]="rolForm.descripcion"
+          rows="4"
+          placeholder="Descripción funcional del rol">
+        </textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Estado</label>
+        <select name="rolEstado" [(ngModel)]="rolForm.estado">
+          <option value="ACTIVO">Activo</option>
+          <option value="INACTIVO">Inactivo</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" (click)="cerrarModalRol()" [disabled]="saving">
+          Cancelar
+        </button>
+
+        <button class="btn btn-primary" type="button" (click)="guardarRol()" [disabled]="saving">
+          <span *ngIf="!saving">
+            {{ modoEdicionRol ? 'Actualizar rol' : 'Guardar rol' }}
+          </span>
+
+          <span class="saving-content" *ngIf="saving">
+            <i class="fa-solid fa-spinner spin"></i>
+            Guardando...
+          </span>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="modalRecursoVisible">
+  <div class="modal-shell large">
+
+    <div class="modal-aside resource">
+      <div class="modal-icon">
+        <i class="fa-solid fa-sitemap"></i>
+      </div>
+
+      <h3>{{ modoEdicionRecurso ? 'Editar recurso' : 'Nuevo recurso' }}</h3>
+
+      <p>
+        Los recursos representan vistas, módulos o endpoints que luego pueden ser asignados a los roles.
+      </p>
+    </div>
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <div>
+          <h3>Información del recurso</h3>
+          <p>Configure las rutas del backend y frontend asociadas a este recurso.</p>
+        </div>
+
+        <button type="button" class="close-button" (click)="cerrarModalRecurso()" [disabled]="saving">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input
+            type="text"
+            name="recursoNombre"
+            [(ngModel)]="recursoForm.nombre"
+            placeholder="Ej: Dispositivos">
+        </div>
+
+        <div class="form-group">
+          <label>Icono</label>
+          <input
+            type="text"
+            name="recursoIcono"
+            [(ngModel)]="recursoForm.icono"
+            placeholder="Ej: fa-solid fa-microchip">
+        </div>
+
+        <div class="form-group">
+          <label>URL backend *</label>
+          <input
+            type="text"
+            name="recursoBackend"
+            [(ngModel)]="recursoForm.url_backend"
+            placeholder="/api/devices/">
+        </div>
+
+        <div class="form-group">
+          <label>URL frontend *</label>
+          <input
+            type="text"
+            name="recursoFrontend"
+            [(ngModel)]="recursoForm.url_frontend"
+            placeholder="/dispositivos/">
+        </div>
+
+        <div class="form-group">
+          <label>Orden</label>
+          <input
+            type="number"
+            name="recursoOrden"
+            [(ngModel)]="recursoForm.orden">
+        </div>
+
+        <div class="form-group">
+          <label>Estado</label>
+          <select name="recursoEstado" [(ngModel)]="recursoForm.estado">
+            <option value="ACTIVO">Activo</option>
+            <option value="INACTIVO">Inactivo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" (click)="cerrarModalRecurso()" [disabled]="saving">
+          Cancelar
+        </button>
+
+        <button class="btn btn-primary" type="button" (click)="guardarRecurso()" [disabled]="saving">
+          <span *ngIf="!saving">
+            {{ modoEdicionRecurso ? 'Actualizar recurso' : 'Guardar recurso' }}
+          </span>
+
+          <span class="saving-content" *ngIf="saving">
+            <i class="fa-solid fa-spinner spin"></i>
+            Guardando...
+          </span>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+</div>

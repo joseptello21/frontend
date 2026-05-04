@@ -1,0 +1,312 @@
+<section class="luminarias-page">
+
+  <div class="hero-panel">
+    <div class="hero-content">
+      <span class="eyebrow">Sistema IoT</span>
+      <h2>Gestión de luminarias</h2>
+      <p>
+        Supervise y controle las luminarias conectadas al sistema.
+      </p>
+
+      <div class="hero-actions">
+        <button class="btn btn-secondary" type="button" (click)="volver()">
+          <i class="fa-solid fa-arrow-left"></i>
+          Volver
+        </button>
+
+        <button class="btn btn-light" type="button" (click)="refrescar()" [disabled]="loading || refreshing">
+          <i class="fa-solid fa-rotate" [class.spin]="refreshing"></i>
+          Actualizar
+        </button>
+
+        <button class="btn btn-primary" type="button" (click)="abrirModalCrear()">
+          <i class="fa-solid fa-plus"></i>
+          Nueva luminaria
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <article class="metric-card">
+      <div class="metric-icon blue">
+        <i class="fa-solid fa-lightbulb"></i>
+      </div>
+
+      <div>
+        <h3>{{ luminarias.length }}</h3>
+        <p>Total luminarias</p>
+      </div>
+    </article>
+  </div>
+
+  <section class="workspace-card">
+    <div class="workspace-header">
+      <div>
+        <h3>Inventario de luminarias</h3>
+        <p>
+          Consulte el estado y características de cada luminaria.
+          <span class="updating" *ngIf="refreshing">Actualizando datos...</span>
+        </p>
+      </div>
+
+      <div class="workspace-controls">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input
+            type="text"
+            placeholder="Buscar luminarias..."
+            (input)="buscar($event)"
+            [value]="searchTerm">
+        </div>
+
+        <div class="view-switch">
+          <button
+            type="button"
+            [class.active]="viewMode === 'grid'"
+            (click)="cambiarVista('grid')"
+            title="Vista de cuadrícula">
+            <i class="fa-solid fa-grip"></i>
+          </button>
+
+          <button
+            type="button"
+            [class.active]="viewMode === 'table'"
+            (click)="cambiarVista('table')"
+            title="Vista de tabla">
+            <i class="fa-solid fa-table-list"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="luminarias-grid" *ngIf="!loading && viewMode === 'grid' && luminariasFiltradas.length > 0">
+      <article class="luminaria-card" *ngFor="let luminaria of luminariasFiltradas">
+
+        <div class="luminaria-card-header">
+          <div class="luminaria-identity">
+            <div class="luminaria-avatar" [class.active]="luminaria.estado === 'activo'">
+              <i class="fa-solid fa-lightbulb"></i>
+            </div>
+
+            <div>
+              <h4>{{ luminaria.tipo_luminaria || 'Sin tipo' }}</h4>
+              <p>ID: {{ luminaria.id_luminaria }}</p>
+            </div>
+          </div>
+
+          <span
+            class="state-pill"
+            [class.active]="luminaria.estado === 'activo'"
+            [class.inactive]="luminaria.estado === 'inactivo'"
+            [class.encendido]="luminaria.estado === 'encendido'"
+            [class.apagado]="luminaria.estado === 'apagado'">
+            <span></span>
+            {{ luminaria.estado || 'Desconocido' }}
+          </span>
+        </div>
+
+        <div class="luminaria-info-row">
+          <span class="info-label">
+            <i class="fa-solid fa-bolt"></i>
+            {{ luminaria.potencia_watts ? luminaria.potencia_watts + 'W' : 'N/A' }}
+          </span>
+
+          <span class="zone-label">
+            <i class="fa-solid fa-map-marker-alt"></i>
+            Zona {{ luminaria.id_zona || 'N/A' }}
+          </span>
+        </div>
+
+        <div class="luminaria-info-grid">
+          <div class="info-item">
+            <span>Potencia</span>
+            <strong>{{ luminaria.potencia_watts ? luminaria.potencia_watts + 'W' : 'N/A' }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Zona</span>
+            <strong>{{ luminaria.id_zona || 'N/A' }}</strong>
+          </div>
+        </div>
+
+        <div class="luminaria-actions">
+          <button class="action-button edit" type="button" title="Editar" (click)="abrirModalEditar(luminaria)">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button class="action-button delete" type="button" title="Eliminar" [disabled]="deletingId === luminaria.id_luminaria" (click)="eliminarLuminaria(luminaria)">
+            <i class="fa-solid" [class.fa-trash]="deletingId !== luminaria.id_luminaria" [class.fa-spinner]="deletingId === luminaria.id_luminaria" [class.spin]="deletingId === luminaria.id_luminaria"></i>
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && viewMode === 'table'">
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tipo</th>
+              <th>Potencia (W)</th>
+              <th>Estado</th>
+              <th>Zona</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let luminaria of luminariasFiltradas">
+              <td>{{ luminaria.id_luminaria }}</td>
+              <td>{{ luminaria.tipo_luminaria || 'N/A' }}</td>
+              <td>{{ luminaria.potencia_watts || 'N/A' }}</td>
+              <td>
+                <span class="status-badge" [class]="luminaria.estado?.toLowerCase()">
+                  {{ luminaria.estado || 'Desconocido' }}
+                </span>
+              </td>
+              <td>{{ luminaria.id_zona || 'N/A' }}</td>
+              <td class="actions">
+                <button class="action-button edit" type="button" title="Editar" (click)="abrirModalEditar(luminaria)">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="action-button delete" type="button" title="Eliminar" [disabled]="deletingId === luminaria.id_luminaria" (click)="eliminarLuminaria(luminaria)">
+                  <i class="fa-solid" [class.fa-trash]="deletingId !== luminaria.id_luminaria" [class.fa-spinner]="deletingId === luminaria.id_luminaria" [class.spin]="deletingId === luminaria.id_luminaria"></i>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="luminariasFiltradas.length === 0">
+              <td colspan="6" class="empty-state">
+                <i class="fa-solid fa-lightbulb"></i>
+                <p>No hay luminarias registradas</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      <i class="fa-solid fa-spinner spin"></i>
+      <p>Cargando luminarias...</p>
+    </div>
+  </section>
+
+<div class="modal-backdrop" *ngIf="modalVisible" (click)="cerrarModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">
+        <div class="modal-icon">
+          <i class="fa-solid fa-lightbulb"></i>
+        </div>
+        <div>
+          <h3>{{ modoEdicion ? 'Editar luminaria' : 'Nueva luminaria' }}</h3>
+          <p>{{ modoEdicion ? 'Modifique los datos de la luminaria' : 'Complete los datos para crear una nueva luminaria' }}</p>
+        </div>
+      </div>
+      <button class="modal-close" type="button" (click)="cerrarModal()" title="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <form class="modal-body" (ngSubmit)="guardarLuminaria()" #luminariaForm="ngForm">
+      <div *ngIf="errorMessage" class="alert alert-error">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <div *ngIf="successMessage" class="alert alert-success">
+        <i class="fa-solid fa-check-circle"></i>
+        <span>{{ successMessage }}</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="tipo_luminaria">
+            <i class="fa-solid fa-tag"></i>
+            Tipo de luminaria *
+          </label>
+          <input
+            id="tipo_luminaria"
+            type="text"
+            [(ngModel)]="formData.tipo_luminaria"
+            name="tipo_luminaria"
+            placeholder="Ej: LED 50W, Halógena 100W"
+            required
+            #tipoInput="ngModel"
+            [class.error]="tipoInput.invalid && tipoInput.touched">
+          <small class="field-hint">Especifique el tipo y potencia de la luminaria</small>
+        </div>
+
+        <div class="form-field">
+          <label for="potencia_watts">
+            <i class="fa-solid fa-bolt"></i>
+            Potencia (Watts)
+          </label>
+          <input
+            id="potencia_watts"
+            type="number"
+            [(ngModel)]="formData.potencia_watts"
+            name="potencia_watts"
+            placeholder="Ej: 50, 100, 200"
+            min="0"
+            step="1">
+          <small class="field-hint">Potencia en watts de la luminaria</small>
+        </div>
+
+        <div class="form-field">
+          <label for="estado">
+            <i class="fa-solid fa-circle-dot"></i>
+            Estado
+          </label>
+          <select
+            id="estado"
+            [(ngModel)]="formData.estado"
+            name="estado"
+            class="form-select">
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+            <option value="encendido">Encendido</option>
+            <option value="apagado">Apagado</option>
+          </select>
+          <small class="field-hint">Estado operativo de la luminaria</small>
+        </div>
+
+        <div class="form-field">
+          <label for="id_zona">
+            <i class="fa-solid fa-map-marker-alt"></i>
+            Zona
+          </label>
+          <input
+            id="id_zona"
+            type="number"
+            [(ngModel)]="formData.id_zona"
+            name="id_zona"
+            placeholder="Ej: 1, 2, 3"
+            min="1"
+            step="1">
+          <small class="field-hint">ID de la zona donde está ubicada la luminaria</small>
+        </div>
+      </div>
+    </form>
+
+    <div class="modal-footer">
+      <button
+        class="btn btn-secondary"
+        type="button"
+        (click)="cerrarModal()"
+        [disabled]="saving">
+        <i class="fa-solid fa-xmark"></i>
+        Cancelar
+      </button>
+
+      <button
+        class="btn btn-primary"
+        type="button"
+        (click)="guardarLuminaria()"
+        [disabled]="saving || !formularioValido()">
+        <i class="fa-solid" [class.fa-plus]="!modoEdicion" [class.fa-save]="modoEdicion" [class.fa-spinner]="saving" [class.spin]="saving"></i>
+        {{ saving ? 'Guardando...' : (modoEdicion ? 'Actualizar' : 'Crear') }}
+      </button>
+    </div>
+  </div>
+</div>

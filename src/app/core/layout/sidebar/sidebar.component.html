@@ -1,0 +1,19 @@
+<aside class="sidebar" [class.collapsed]="collapsed">
+
+  <div class="sidebar-header">
+    <div class="logo">
+      <i class="fa-solid fa-layer-group"></i>
+    </div>
+
+    <div class="brand" *ngIf="!collapsed">
+      <h2>Mi Sistema</h2>
+      <span>Panel de control</span>
+    </div>
+  </div>
+
+  <nav class="menu">
+    <div>Menu items: {{ menu?.length || 0 }}</div>
+    <div *ngFor="let item of menu">{{ item.nombre }}</div>
+  </nav>
+
+</aside>

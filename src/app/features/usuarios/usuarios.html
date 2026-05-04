@@ -1,0 +1,310 @@
+<section class="usuarios-page">
+
+  <div class="hero-panel">
+    <div class="hero-content">
+      <span class="eyebrow">Sistema IoT</span>
+      <h2>Gestión de usuarios</h2>
+      <p>
+        Administre los usuarios registrados en el sistema.
+      </p>
+
+      <div class="hero-actions">
+        <button class="btn btn-secondary" type="button" (click)="volver()">
+          <i class="fa-solid fa-arrow-left"></i>
+          Volver
+        </button>
+
+        <button class="btn btn-light" type="button" (click)="refrescar()" [disabled]="loading || refreshing">
+          <i class="fa-solid fa-rotate" [class.spin]="refreshing"></i>
+          Actualizar
+        </button>
+
+        <button class="btn btn-primary" type="button" (click)="abrirModalCrear()">
+          <i class="fa-solid fa-plus"></i>
+          Nuevo usuario
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <article class="metric-card">
+      <div class="metric-icon blue">
+        <i class="fa-solid fa-users"></i>
+      </div>
+
+      <div>
+        <h3>{{ usuarios.length }}</h3>
+        <p>Total usuarios</p>
+      </div>
+    </article>
+  </div>
+
+  <div class="message success" *ngIf="successMessage">
+    <i class="fa-solid fa-circle-check"></i>
+    <span>{{ successMessage }}</span>
+  </div>
+
+  <div class="message error" *ngIf="errorMessage && !modalVisible">
+    <i class="fa-solid fa-circle-exclamation"></i>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <section class="workspace-card">
+    <div class="workspace-header">
+      <div>
+        <h3>Inventario de usuarios</h3>
+        <p>
+          Consulte el estado y características de cada usuario.
+          <span class="updating" *ngIf="refreshing">Actualizando datos...</span>
+        </p>
+      </div>
+
+      <div class="workspace-controls">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input
+            type="text"
+            placeholder="Buscar usuarios..."
+            (input)="buscar($event)"
+            [value]="searchTerm">
+        </div>
+
+        <div class="view-switch">
+          <button
+            type="button"
+            [class.active]="viewMode === 'grid'"
+            (click)="cambiarVista('grid')"
+            title="Vista de cuadrícula">
+            <i class="fa-solid fa-grip"></i>
+          </button>
+
+          <button
+            type="button"
+            [class.active]="viewMode === 'table'"
+            (click)="cambiarVista('table')"
+            title="Vista de tabla">
+            <i class="fa-solid fa-table-list"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-control">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, email, username..."
+          [value]="searchTerm"
+          (input)="buscar($event)">
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && viewMode === 'table'">
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Estado</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let usuario of usuariosFiltrados">
+              <td>{{ usuario.idusuarios }}</td>
+              <td>
+                <div>
+                  <strong>{{ usuario.nombre || usuario.username || 'Sin nombre' }}</strong>
+                  <small>{{ usuario.username || 'Sin username' }}</small>
+                </div>
+              </td>
+              <td>{{ usuario.correo || usuario.email || 'Sin email' }}</td>
+              <td>
+                <span
+                  class="state-pill compact"
+                  [class.online]="usuario.estado !== 'Inactivo'"
+                  [class.offline]="usuario.estado === 'Inactivo'">
+                  <span></span>
+                  {{ usuario.estado || 'Activo' }}
+                </span>
+              </td>
+              <td class="actions">
+                <button class="action-button edit" type="button" title="Editar" (click)="abrirModalEditar(usuario)">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="action-button delete" type="button" title="Eliminar" [disabled]="deletingId === usuario.idusuarios" (click)="eliminar(usuario)">
+                  <i class="fa-solid" [class.fa-trash]="deletingId !== usuario.idusuarios" [class.fa-spinner]="deletingId === usuario.idusuarios" [class.spin]="deletingId === usuario.idusuarios"></i>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="usuariosFiltrados.length === 0">
+              <td colspan="5" class="empty-state">
+                <i class="fa-solid fa-users"></i>
+                <p>No hay usuarios registrados</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="usuarios-grid" *ngIf="!loading && viewMode === 'grid' && usuariosFiltrados.length > 0">
+      <article class="usuario-card" *ngFor="let usuario of usuariosFiltrados">
+
+        <div class="usuario-card-header">
+          <div class="usuario-identity">
+            <div class="usuario-avatar">
+              <i class="fa-solid fa-user"></i>
+            </div>
+
+            <div>
+              <h4>{{ usuario.nombre || usuario.username || 'Sin nombre' }}</h4>
+              <p>{{ usuario.username || 'Sin username' }}</p>
+            </div>
+          </div>
+
+          <span
+            class="state-pill"
+            [class.online]="usuario.estado !== 'Inactivo'"
+            [class.offline]="usuario.estado === 'Inactivo'">
+            <span></span>
+            {{ usuario.estado || 'Activo' }}
+          </span>
+        </div>
+
+        <div class="usuario-info-row">
+          <span class="email-label">
+            <i class="fa-solid fa-envelope"></i>
+            {{ usuario.correo || usuario.email || 'Sin email' }}
+          </span>
+        </div>
+
+        <div class="usuario-info-grid">
+          <div class="info-item">
+            <span>ID</span>
+            <strong>{{ usuario.idusuarios }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Estado</span>
+            <strong>{{ usuario.estado || 'Activo' }}</strong>
+          </div>
+        </div>
+
+        <div class="usuario-actions">
+          <button class="action-button edit" type="button" title="Editar" (click)="abrirModalEditar(usuario)">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button class="action-button delete" type="button" title="Eliminar" [disabled]="deletingId === usuario.idusuarios" (click)="eliminar(usuario)">
+            <i class="fa-solid" [class.fa-trash]="deletingId !== usuario.idusuarios" [class.fa-spinner]="deletingId === usuario.idusuarios" [class.spin]="deletingId === usuario.idusuarios"></i>
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      <i class="fa-solid fa-spinner spin"></i>
+      <p>Cargando usuarios...</p>
+    </div>
+  </section>
+
+</section>
+
+  <div class="modal-backdrop" *ngIf="modalVisible">
+    <div class="modal-container">
+
+      <div class="modal-header">
+        <div class="modal-title">
+          <div class="modal-icon">
+            <i class="fa-solid fa-user"></i>
+          </div>
+
+          <div>
+            <h3>{{ modoEdicion ? 'Editar usuario' : 'Nuevo usuario' }}</h3>
+            <p>
+              {{ modoEdicion ? 'Actualice la información del usuario.' : 'Registre un nuevo usuario en el sistema.' }}
+            </p>
+          </div>
+        </div>
+
+        <button class="modal-close" type="button" (click)="cerrarModal()" [disabled]="saving">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="alert alert-error" *ngIf="errorMessage">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <form class="form-grid" (ngSubmit)="guardarUsuario()">
+          <div class="form-field">
+            <label>
+              <i class="fa-solid fa-user"></i>
+              Nombre *
+            </label>
+            <input
+              type="text"
+              name="nombre"
+              [(ngModel)]="formData.nombre"
+              placeholder="Ej: Juan Pérez"
+              [disabled]="saving"
+              required>
+            <span class="field-hint">Nombre completo del usuario</span>
+          </div>
+
+          <div class="form-field">
+            <label>
+              <i class="fa-solid fa-envelope"></i>
+              Email *
+            </label>
+            <input
+              type="email"
+              name="email"
+              [(ngModel)]="formData.email"
+              placeholder="Ej: usuario@ejemplo.com"
+              [disabled]="saving"
+              required>
+            <span class="field-hint">Correo electrónico válido</span>
+          </div>
+
+          <div class="form-field" *ngIf="!modoEdicion">
+            <label>
+              <i class="fa-solid fa-lock"></i>
+              Contraseña *
+            </label>
+            <input
+              type="password"
+              name="password"
+              [(ngModel)]="formData.password"
+              placeholder="Contraseña segura"
+              [disabled]="saving"
+              required>
+            <span class="field-hint">Mínimo 8 caracteres con números y letras</span>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" (click)="cerrarModal()" [disabled]="saving">
+          Cancelar
+        </button>
+
+        <button class="btn btn-primary" type="submit" [disabled]="saving" (click)="guardarUsuario()">
+          <span *ngIf="!saving">
+            {{ modoEdicion ? 'Actualizar usuario' : 'Guardar usuario' }}
+          </span>
+
+          <span *ngIf="saving">
+            <i class="fa-solid fa-spinner spin"></i>
+            Guardando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>

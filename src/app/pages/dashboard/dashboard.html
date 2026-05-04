@@ -1,0 +1,420 @@
+<div class="dashboard">
+  <header class="header">
+    <div>
+      <h1>Panel de Control</h1>
+      <p class="subtitle">Bienvenido, {{ user()?.email }}</p>
+    </div>
+    <button (click)="logout()" class="btn-logout">Cerrar Sesión</button>
+  </header>
+
+  <section class="stats-grid">
+    @for (stat of stats(); track stat.label) {
+      <div class="stat-card">
+        <span class="stat-icon">{{ stat.icon }}</span>
+        <div class="stat-content">
+          <span class="stat-value">{{ stat.value }}</span>
+          <span class="stat-label">{{ stat.label }}</span>
+        </div>
+      </div>
+    }
+  </section>
+
+  <section class="system-overview">
+    <h2>Estado del Sistema</h2>
+    <div class="overview-grid">
+      <div class="overview-card">
+        <h3>Dispositivos</h3>
+        <div class="metric">
+          <span class="metric-value">{{ dispositivosActivos() }}</span>
+          <span class="metric-label">Activos</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">{{ dispositivosInactivos() }}</span>
+          <span class="metric-label">Inactivos</span>
+        </div>
+      </div>
+
+      <div class="overview-card">
+        <h3>Sensores</h3>
+        <div class="metric">
+          <span class="metric-value">{{ sensoresPorTipo().length }}</span>
+          <span class="metric-label">Tipos diferentes</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">{{ sensores().length }}</span>
+          <span class="metric-label">Total sensores</span>
+        </div>
+      </div>
+
+      <div class="overview-card">
+        <h3>Luminarias</h3>
+        <div class="metric">
+          <span class="metric-value">{{ luminariasActivas() }}</span>
+          <span class="metric-label">Activas</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">{{ potenciaTotalLuminarias() }}</span>
+          <span class="metric-label">Potencia total (W)</span>
+        </div>
+      </div>
+
+      <div class="overview-card">
+        <h3>Baterías</h3>
+        <div class="metric">
+          <span class="metric-value">{{ bateriasActivas() }}</span>
+          <span class="metric-label">Activas</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">{{ capacidadTotalBaterias() }}</span>
+          <span class="metric-label">Capacidad total (Ah)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="recent-activity">
+    <h2>Actividad Reciente</h2>
+    <div class="activity-list">
+      @for (activity of actividadesRecientes(); track activity.id) {
+        <div class="activity-item" [class]="'activity-' + activity.type">
+          <div class="activity-icon">
+            <span [class]="activity.iconClass">{{ activity.icon }}</span>
+          </div>
+          <div class="activity-content">
+            <p>{{ activity.message }}</p>
+            <small>{{ activity.time }}</small>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (message) {
+    <div class="toast">{{ message }}</div>
+  }
+
+  <section class="crud-section">
+    <div class="section-header">
+      <h2>Usuarios</h2>
+      <button class="btn-primary" (click)="startUsuarioCreate()">Nuevo Usuario</button>
+    </div>
+
+    @if (showUsuarioForm()) {
+      <div class="form-panel">
+        <form (ngSubmit)="saveUsuario()">
+          <div class="field-group">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="usuarioForm.email" name="usuarioEmail" required />
+          </div>
+          <div class="field-group">
+            <label>Contraseña</label>
+            <input type="password" [(ngModel)]="usuarioForm.password" name="usuarioPassword" placeholder="Usa solo al crear o cambiar" />
+          </div>
+          <div class="field-group">
+            <label>Nombre</label>
+            <input type="text" [(ngModel)]="usuarioForm.nombre" name="usuarioNombre" />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Guardar</button>
+            <button type="button" class="btn-secondary" (click)="cancelAction()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Nombre</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuarios(); track usuario.idusuarios) {
+            <tr>
+              <td>{{ usuario.email || '-' }}</td>
+              <td>{{ usuario.nombre || '-' }}</td>
+              <td>
+                <button class="btn-secondary" (click)="editUsuario(usuario)">Editar</button>
+                <button class="btn-danger" (click)="deleteUsuario(usuario.idusuarios)">Eliminar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="crud-section">
+    <div class="section-header">
+      <h2>Dispositivos</h2>
+      <button class="btn-primary" (click)="startDeviceCreate()">Nuevo Dispositivo</button>
+    </div>
+
+    @if (showDeviceForm()) {
+      <div class="form-panel">
+        <form (ngSubmit)="saveDevice()">
+          <div class="field-group">
+            <label>Nombre</label>
+            <input type="text" [(ngModel)]="deviceForm.name" name="deviceName" required />
+          </div>
+          <div class="field-group">
+            <label>Ubicación</label>
+            <input type="text" [(ngModel)]="deviceForm.location" name="deviceLocation" required />
+          </div>
+          <div class="field-group">
+            <label>Estado</label>
+            <select [(ngModel)]="deviceForm.status" name="deviceStatus" required>
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Modo</label>
+            <select [(ngModel)]="deviceForm.mode" name="deviceMode" required>
+              <option value="automatico">Automático</option>
+              <option value="manual">Manual</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Guardar</button>
+            <button type="button" class="btn-secondary" (click)="cancelAction()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Ubicación</th>
+            <th>Estado</th>
+            <th>Modo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (device of dispositivos(); track device.id || device.id_device) {
+            <tr>
+              <td>{{ device.name || device.nombre }}</td>
+              <td>{{ device.location || device.ubicacion }}</td>
+              <td>{{ device.status || device.estado }}</td>
+              <td>{{ device.mode || device.modo }}</td>
+              <td>
+                <button class="btn-secondary" (click)="editDevice(device)">Editar</button>
+                <button class="btn-danger" (click)="deleteDevice(getDeviceId(device)!)">Eliminar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="crud-section">
+    <div class="section-header">
+      <h2>Sensores</h2>
+      <button class="btn-primary" (click)="startSensorCreate()">Nuevo Sensor</button>
+    </div>
+
+    @if (showSensorForm()) {
+      <div class="form-panel">
+        <form (ngSubmit)="saveSensor()">
+          <div class="field-group">
+            <label>Tipo</label>
+            <input type="text" [(ngModel)]="sensorForm.tipo_sensor" name="sensorTipo" required />
+          </div>
+          <div class="field-group">
+            <label>Descripción</label>
+            <input type="text" [(ngModel)]="sensorForm.descripcion" name="sensorDescripcion" />
+          </div>
+          <div class="field-group">
+            <label>ID Dispositivo</label>
+            <input type="number" [(ngModel)]="sensorForm.id_dispositivo" name="sensorDispositivo" />
+          </div>
+          <div class="field-group">
+            <label>Unidad</label>
+            <input type="text" [(ngModel)]="sensorForm.unidad_medida" name="sensorUnidad" />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Guardar</button>
+            <button type="button" class="btn-secondary" (click)="cancelAction()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Descripción</th>
+            <th>Dispositivo</th>
+            <th>Unidad</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (sensor of sensores(); track sensor.id_sensor) {
+            <tr>
+              <td>{{ sensor.tipo_sensor }}</td>
+              <td>{{ sensor.descripcion || '-' }}</td>
+              <td>{{ sensor.id_dispositivo || '-' }}</td>
+              <td>{{ sensor.unidad_medida || '-' }}</td>
+              <td>
+                <button class="btn-secondary" (click)="editSensor(sensor)">Editar</button>
+                <button class="btn-danger" (click)="deleteSensor(sensor.id_sensor)">Eliminar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="crud-section">
+    <div class="section-header">
+      <h2>Luminarias</h2>
+      <button class="btn-primary" (click)="startLuminariaCreate()">Nueva Luminaria</button>
+    </div>
+
+    @if (showLuminariaForm()) {
+      <div class="form-panel">
+        <form (ngSubmit)="saveLuminaria()">
+          <div class="field-group">
+            <label>Tipo</label>
+            <input type="text" [(ngModel)]="luminariaForm.tipo_luminaria" name="luminariaTipo" />
+          </div>
+          <div class="field-group">
+            <label>Potencia (W)</label>
+            <input type="number" [(ngModel)]="luminariaForm.potencia_watts" name="luminariaPotencia" />
+          </div>
+          <div class="field-group">
+            <label>Estado</label>
+            <input type="text" [(ngModel)]="luminariaForm.estado" name="luminariaEstado" />
+          </div>
+          <div class="field-group">
+            <label>ID Zona</label>
+            <input type="number" [(ngModel)]="luminariaForm.id_zona" name="luminariaZona" />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Guardar</button>
+            <button type="button" class="btn-secondary" (click)="cancelAction()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Potencia</th>
+            <th>Estado</th>
+            <th>ID Zona</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of luminarias(); track item.id_luminaria) {
+            <tr>
+              <td>{{ item.tipo_luminaria || '-' }}</td>
+              <td>{{ item.potencia_watts || '-' }}</td>
+              <td>{{ item.estado || '-' }}</td>
+              <td>{{ item.id_zona || '-' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="crud-section">
+    <div class="section-header">
+      <h2>Baterías</h2>
+      <button class="btn-primary" (click)="startBateriaCreate()">Nueva Batería</button>
+    </div>
+
+    @if (showBateriaForm()) {
+      <div class="form-panel">
+        <form (ngSubmit)="saveBateria()">
+          <div class="field-group">
+            <label>Capacidad (Ah)</label>
+            <input type="number" [(ngModel)]="bateriaForm.capacidad_ah" name="bateriaCapacidad" required />
+          </div>
+          <div class="field-group">
+            <label>Voltaje</label>
+            <input type="number" [(ngModel)]="bateriaForm.voltaje" name="bateriaVoltaje" required />
+          </div>
+          <div class="field-group">
+            <label>Estado</label>
+            <input type="text" [(ngModel)]="bateriaForm.estado" name="bateriaEstado" />
+          </div>
+          <div class="field-group">
+            <label>ID Panel</label>
+            <input type="number" [(ngModel)]="bateriaForm.id_panel" name="bateriaPanel" />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Guardar</button>
+            <button type="button" class="btn-secondary" (click)="cancelAction()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Capacidad</th>
+            <th>Voltaje</th>
+            <th>Estado</th>
+            <th>ID Panel</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of baterias(); track item.id_bateria) {
+            <tr>
+              <td>{{ item.capacidad_ah }}</td>
+              <td>{{ item.voltaje }}</td>
+              <td>{{ item.estado || '-' }}</td>
+              <td>{{ item.id_panel || '-' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="crud-section">
+    <div class="section-header">
+      <h2>Alertas</h2>
+    </div>
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Descripción</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (alerta of alertas(); track alerta.id_alerta) {
+            <tr>
+              <td>{{ alerta.tipo_alerta }}</td>
+              <td>{{ alerta.descripcion }}</td>
+              <td>{{ alerta.fecha_alerta | date:'short' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

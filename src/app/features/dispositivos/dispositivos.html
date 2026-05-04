@@ -1,0 +1,495 @@
+<section class="devices-page">
+
+  <div class="hero-panel">
+    <div class="hero-content">
+      <span class="eyebrow">Sistema IoT</span>
+      <h2>Gestión de dispositivos</h2>
+      <p>
+        Supervise, administre y mantenga el control operativo de los dispositivos conectados al sistema.
+      </p>
+
+      <div class="hero-actions">
+        <button class="btn btn-secondary" type="button" (click)="volver()">
+          <i class="fa-solid fa-arrow-left"></i>
+          Volver
+        </button>
+
+        <button class="btn btn-light" type="button" (click)="refrescar()" [disabled]="loading || refreshing">
+          <i class="fa-solid fa-rotate" [class.spin]="refreshing"></i>
+          Actualizar
+        </button>
+
+        <button class="btn btn-primary" type="button" (click)="abrirModalCrear()">
+          <i class="fa-solid fa-plus"></i>
+          Nuevo dispositivo
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-status">
+      <div class="status-ring">
+        <span>{{ porcentajeOnline() }}%</span>
+        <small>Online</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <article class="metric-card">
+      <div class="metric-icon blue">
+        <i class="fa-solid fa-microchip"></i>
+      </div>
+
+      <div>
+        <h3>{{ dispositivos.length }}</h3>
+        <p>Total dispositivos</p>
+      </div>
+    </article>
+
+    <article class="metric-card">
+      <div class="metric-icon green">
+        <i class="fa-solid fa-wifi"></i>
+      </div>
+
+      <div>
+        <h3>{{ totalOnline() }}</h3>
+        <p>Dispositivos online</p>
+      </div>
+    </article>
+
+    <article class="metric-card">
+      <div class="metric-icon amber">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+
+      <div>
+        <h3>{{ totalOffline() }}</h3>
+        <p>Requieren atención</p>
+      </div>
+    </article>
+
+    <article class="metric-card">
+      <div class="metric-icon purple">
+        <i class="fa-solid fa-filter"></i>
+      </div>
+
+      <div>
+        <h3>{{ dispositivosFiltrados.length }}</h3>
+        <p>Resultados visibles</p>
+      </div>
+    </article>
+  </div>
+
+  <div class="message success" *ngIf="successMessage">
+    <i class="fa-solid fa-circle-check"></i>
+    <span>{{ successMessage }}</span>
+  </div>
+
+  <div class="message error" *ngIf="errorMessage && !modalVisible">
+    <i class="fa-solid fa-circle-exclamation"></i>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <section class="workspace-card">
+
+    <div class="workspace-header">
+      <div>
+        <h3>Inventario de dispositivos</h3>
+        <p>
+          Consulte el estado, ubicación, conexión y características técnicas de cada dispositivo.
+          <span class="updating" *ngIf="refreshing">Actualizando datos...</span>
+        </p>
+      </div>
+
+      <div class="view-switch">
+        <button
+          type="button"
+          [class.active]="viewMode === 'grid'"
+          (click)="cambiarVista('grid')">
+          <i class="fa-solid fa-grip"></i>
+        </button>
+
+        <button
+          type="button"
+          [class.active]="viewMode === 'table'"
+          (click)="cambiarVista('table')">
+          <i class="fa-solid fa-table-list"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-control">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, ubicación, estado, modo..."
+          [value]="searchTerm"
+          (input)="buscar($event)">
+      </div>
+
+      <div class="filter-group">
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="filtroEstado === 'TODOS'"
+          (click)="cambiarFiltroEstado('TODOS')">
+          Todos
+        </button>
+
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="filtroEstado === 'activo'"
+          (click)="cambiarFiltroEstado('activo')">
+          Activo
+        </button>
+
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="filtroEstado === 'inactivo'"
+          (click)="cambiarFiltroEstado('inactivo')">
+          Inactivo
+        </button>
+
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="filtroEstado === 'mantenimiento'"
+          (click)="cambiarFiltroEstado('mantenimiento')">
+          Mantenimiento
+        </button>
+      </div>
+
+      <button
+        class="clear-filters"
+        type="button"
+        *ngIf="searchTerm || filtroEstado !== 'TODOS'"
+        (click)="limpiarFiltros()">
+        <i class="fa-solid fa-xmark"></i>
+        Limpiar
+      </button>
+    </div>
+
+    <div class="skeleton-grid" *ngIf="loading">
+      <article class="skeleton-card" *ngFor="let item of [1,2,3,4,5,6]">
+        <div class="skeleton-top">
+          <span></span>
+          <small></small>
+        </div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line short"></div>
+      </article>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && dispositivosFiltrados.length === 0 && !errorMessage">
+      <div class="empty-icon">
+        <i class="fa-solid fa-box-open"></i>
+      </div>
+
+      <h4>No hay dispositivos para mostrar</h4>
+      <p>
+        No se encontraron dispositivos con los filtros actuales. Intente limpiar la búsqueda o registre uno nuevo.
+      </p>
+
+      <button class="btn btn-primary" type="button" (click)="abrirModalCrear()">
+        <i class="fa-solid fa-plus"></i>
+        Registrar dispositivo
+      </button>
+    </div>
+
+    <div class="devices-grid" *ngIf="!loading && viewMode === 'grid' && dispositivosFiltrados.length > 0">
+      <article
+        class="device-card"
+        *ngFor="let dispositivo of dispositivosFiltrados; trackBy: trackByDeviceId">
+
+        <div class="device-card-header">
+          <div class="device-identity">
+            <div class="device-avatar" [class.online]="dispositivo.status === 'activo'">
+              <i class="fa-solid fa-microchip"></i>
+            </div>
+
+            <div>
+              <h4>{{ dispositivo.name || 'Sin nombre' }}</h4>
+              <p>ID: {{ dispositivo.id }}</p>
+            </div>
+          </div>
+
+          <span
+            class="state-pill"
+            [class.online]="dispositivo.status === 'activo'"
+            [class.offline]="dispositivo.status === 'inactivo'"
+            [class.maintenance]="dispositivo.status === 'mantenimiento'">
+            <span></span>
+            {{ dispositivo.status || 'Desconocido' }}
+          </span>
+        </div>
+
+        <div class="device-type-row">
+          <span class="type-label">
+            <i class="fa-solid fa-map-marker-alt"></i>
+            {{ dispositivo.location || 'Sin ubicación' }}
+          </span>
+
+          <span class="active-label" [class.enabled]="dispositivo.status === 'activo'" [class.disabled]="dispositivo.status !== 'activo'">
+            {{ dispositivo.mode || 'normal' }}
+          </span>
+        </div>
+
+        <div class="device-info-grid">
+          <div class="info-item">
+            <span>Estado</span>
+            <strong>{{ dispositivo.status || 'Desconocido' }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Modo</span>
+            <strong>{{ dispositivo.mode || 'normal' }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Zona</span>
+            <strong>{{ dispositivo.zone || 'N/A' }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Última conexión</span>
+            <strong>{{ dispositivo.last_seen ? (dispositivo.last_seen | date:'dd/MM/yyyy') : 'Nunca' }}</strong>
+          </div>
+        </div>
+
+        <div class="firmware-box">
+          <div>
+            <span>Firmware</span>
+            <strong>{{ dispositivo.firmware_version || 'Sin versión registrada' }}</strong>
+          </div>
+
+          <i class="fa-solid fa-code-branch"></i>
+        </div>
+
+        <div class="device-card-footer">
+          <small>
+            <i class="fa-regular fa-clock"></i>
+            Actualizado: {{ dispositivo.updated_at ? (dispositivo.updated_at | date:'dd/MM/yyyy HH:mm') : 'Sin fecha' }}
+          </small>
+
+          <div class="card-actions">
+            <button
+              class="action-button edit"
+              type="button"
+              title="Editar"
+              (click)="abrirModalEditar(dispositivo)">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+
+            <button
+              class="action-button delete"
+              type="button"
+              title="Eliminar"
+              [disabled]="deletingId === dispositivo.id"
+              (click)="eliminarDispositivo(dispositivo)">
+              <i
+                class="fa-solid"
+                [class.fa-trash]="deletingId !== dispositivo.id"
+                [class.fa-spinner]="deletingId === dispositivo.id"
+                [class.spin]="deletingId === dispositivo.id">
+              </i>
+            </button>
+          </div>
+        </div>
+
+      </article>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && viewMode === 'table' && dispositivosFiltrados.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Dispositivo</th>
+            <th>Ubicación</th>
+            <th>Estado</th>
+            <th>Modo</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let dispositivo of dispositivosFiltrados; trackBy: trackByDeviceId">
+            <td>
+              <div class="table-device">
+                <div class="mini-avatar" [class.online]="estaOnline(dispositivo)">
+                  <i class="fa-solid fa-microchip"></i>
+                </div>
+
+                <div>
+                  <strong>{{ dispositivo.name || 'Sin nombre' }}</strong>
+                  <small>ID: {{ dispositivo.id }}</small>
+                </div>
+              </div>
+            </td>
+
+            <td>{{ dispositivo.location || 'Sin ubicación' }}</td>
+
+            <td>
+              <span
+                class="state-pill compact"
+                [class.online]="dispositivo.status === 'activo'"
+                [class.offline]="dispositivo.status === 'inactivo'"
+                [class.maintenance]="dispositivo.status === 'mantenimiento'">
+                <span></span>
+                {{ dispositivo.status || 'Desconocido' }}
+              </span>
+            </td>
+
+            <td>{{ dispositivo.mode || 'normal' }}</td>
+
+            <td>
+              <span class="active-dot" [class.enabled]="dispositivo.active">
+                {{ dispositivo.active ? 'Sí' : 'No' }}
+              </span>
+            </td>
+
+            <td class="text-right">
+              <button
+                class="action-button edit"
+                type="button"
+                (click)="abrirModalEditar(dispositivo)">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+
+              <button
+                class="action-button delete"
+                type="button"
+                [disabled]="deletingId === dispositivo.id"
+                (click)="eliminarDispositivo(dispositivo)">
+                <i
+                  class="fa-solid"
+                  [class.fa-trash]="deletingId !== dispositivo.id"
+                  [class.fa-spinner]="deletingId === dispositivo.id"
+                  [class.spin]="deletingId === dispositivo.id">
+                </i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+</section>
+
+<div class="modal-backdrop" *ngIf="modalVisible">
+  <div class="modal-shell">
+
+    <div class="modal-visual">
+      <div class="modal-icon">
+        <i class="fa-solid fa-microchip"></i>
+      </div>
+
+      <h3>{{ modoEdicion ? 'Editar dispositivo' : 'Nuevo dispositivo' }}</h3>
+
+      <p>
+        {{ modoEdicion ? 'Actualice la información técnica y operativa del dispositivo.' : 'Registre un nuevo dispositivo IoT dentro del sistema de riego.' }}
+      </p>
+
+      <div class="modal-hint">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Los campos marcados como obligatorios permiten identificar y ubicar el dispositivo.</span>
+      </div>
+    </div>
+
+    <div class="modal-content">
+
+      <div class="modal-top">
+        <div>
+          <h3>{{ modoEdicion ? 'Datos del dispositivo' : 'Formulario de registro' }}</h3>
+          <p>Complete la información requerida para continuar.</p>
+        </div>
+
+        <button class="modal-close" type="button" (click)="cerrarModal()" [disabled]="saving">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="message error" *ngIf="errorMessage">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <form class="device-form" (ngSubmit)="guardarDispositivo()">
+
+        <div class="form-section">
+          <h4>Información del dispositivo</h4>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre *</label>
+              <input
+                type="text"
+                name="name"
+                [(ngModel)]="dispositivoForm.name"
+                placeholder="Ej: Sensor de temperatura"
+                [disabled]="saving">
+            </div>
+
+            <div class="form-group">
+              <label>Ubicación</label>
+              <input
+                type="text"
+                name="location"
+                [(ngModel)]="dispositivoForm.location"
+                placeholder="Ej: Zona norte, parcela 5"
+                [disabled]="saving">
+            </div>
+
+            <div class="form-group">
+              <label>Estado</label>
+              <select
+                name="status"
+                [(ngModel)]="dispositivoForm.status"
+                [disabled]="saving">
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+                <option value="mantenimiento">Mantenimiento</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Modo</label>
+              <select
+                name="mode"
+                [(ngModel)]="dispositivoForm.mode"
+                [disabled]="saving">
+                <option value="normal">Normal</option>
+                <option value="debug">Debug</option>
+                <option value="test">Test</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" (click)="cerrarModal()" [disabled]="saving">
+            Cancelar
+          </button>
+
+          <button class="btn btn-primary" type="submit" [disabled]="saving">
+            <span *ngIf="!saving">
+              {{ modoEdicion ? 'Actualizar dispositivo' : 'Guardar dispositivo' }}
+            </span>
+
+            <span class="saving-content" *ngIf="saving">
+              <i class="fa-solid fa-spinner spin"></i>
+              Guardando...
+            </span>
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+</div>

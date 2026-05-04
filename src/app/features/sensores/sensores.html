@@ -1,0 +1,294 @@
+<section class="sensores-page">
+
+  <div class="hero-panel">
+    <div class="hero-content">
+      <span class="eyebrow">Sistema IoT</span>
+      <h2>Gestión de sensores</h2>
+      <p>
+        Supervise y controle los sensores conectados al sistema.
+      </p>
+
+      <div class="hero-actions">
+        <button class="btn btn-secondary" type="button" (click)="volver()">
+          <i class="fa-solid fa-arrow-left"></i>
+          Volver
+        </button>
+
+        <button class="btn btn-light" type="button" (click)="refrescar()" [disabled]="loading || refreshing">
+          <i class="fa-solid fa-rotate" [class.spin]="refreshing"></i>
+          Actualizar
+        </button>
+
+        <button class="btn btn-primary" type="button" (click)="abrirModalCrear()">
+          <i class="fa-solid fa-plus"></i>
+          Nuevo sensor
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <article class="metric-card">
+      <div class="metric-icon blue">
+        <i class="fa-solid fa-gauge"></i>
+      </div>
+
+      <div>
+        <h3>{{ sensores.length }}</h3>
+        <p>Total sensores</p>
+      </div>
+    </article>
+  </div>
+
+  <section class="workspace-card">
+    <div class="workspace-header">
+      <div>
+        <h3>Inventario de sensores</h3>
+        <p>
+          Consulte el estado y características de cada sensor.
+          <span class="updating" *ngIf="refreshing">Actualizando datos...</span>
+        </p>
+      </div>
+
+      <div class="workspace-controls">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input
+            type="text"
+            placeholder="Buscar sensores..."
+            (input)="buscar($event)"
+            [value]="searchTerm">
+        </div>
+
+        <div class="view-switch">
+          <button
+            type="button"
+            [class.active]="viewMode === 'grid'"
+            (click)="cambiarVista('grid')"
+            title="Vista de cuadrícula">
+            <i class="fa-solid fa-grip"></i>
+          </button>
+
+          <button
+            type="button"
+            [class.active]="viewMode === 'table'"
+            (click)="cambiarVista('table')"
+            title="Vista de tabla">
+            <i class="fa-solid fa-table-list"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sensores-grid" *ngIf="!loading && viewMode === 'grid' && sensoresFiltrados.length > 0">
+      <article class="sensor-card" *ngFor="let sensor of sensoresFiltrados">
+
+        <div class="sensor-card-header">
+          <div class="sensor-identity">
+            <div class="sensor-avatar">
+              <i class="fa-solid fa-gauge"></i>
+            </div>
+
+            <div>
+              <h4>{{ sensor.tipo_sensor }}</h4>
+              <p>ID: {{ sensor.id_sensor }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="sensor-info-row">
+          <span class="info-label">
+            <i class="fa-solid fa-tag"></i>
+            {{ sensor.descripcion || 'Sin descripción' }}
+          </span>
+
+          <span class="unit-label">
+            <i class="fa-solid fa-ruler"></i>
+            {{ sensor.unidad_medida || 'N/A' }}
+          </span>
+        </div>
+
+        <div class="sensor-info-grid">
+          <div class="info-item">
+            <span>Unidad</span>
+            <strong>{{ sensor.unidad_medida || 'N/A' }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Dispositivo</span>
+            <strong>{{ sensor.id_dispositivo || 'N/A' }}</strong>
+          </div>
+        </div>
+
+        <div class="sensor-actions">
+          <button class="action-button edit" type="button" title="Editar" (click)="abrirModalEditar(sensor)">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button class="action-button delete" type="button" title="Eliminar" [disabled]="deletingId === sensor.id_sensor" (click)="eliminarSensor(sensor)">
+            <i class="fa-solid" [class.fa-trash]="deletingId !== sensor.id_sensor" [class.fa-spinner]="deletingId === sensor.id_sensor" [class.spin]="deletingId === sensor.id_sensor"></i>
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && viewMode === 'table'">
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tipo</th>
+              <th>Descripción</th>
+              <th>Unidad</th>
+              <th>Dispositivo</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let sensor of sensoresFiltrados">
+              <td>{{ sensor.id_sensor }}</td>
+              <td>{{ sensor.tipo_sensor }}</td>
+              <td>{{ sensor.descripcion || 'N/A' }}</td>
+              <td>{{ sensor.unidad_medida || 'N/A' }}</td>
+              <td>{{ sensor.id_dispositivo || 'N/A' }}</td>
+              <td class="actions">
+                <button class="action-button edit" type="button" title="Editar" (click)="abrirModalEditar(sensor)">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="action-button delete" type="button" title="Eliminar" [disabled]="deletingId === sensor.id_sensor" (click)="eliminarSensor(sensor)">
+                  <i class="fa-solid" [class.fa-trash]="deletingId !== sensor.id_sensor" [class.fa-spinner]="deletingId === sensor.id_sensor" [class.spin]="deletingId === sensor.id_sensor"></i>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="sensoresFiltrados.length === 0">
+              <td colspan="6" class="empty-state">
+                <i class="fa-solid fa-gauge"></i>
+                <p>No hay sensores registrados</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      <i class="fa-solid fa-spinner spin"></i>
+      <p>Cargando sensores...</p>
+    </div>
+  </section>
+
+</section>
+
+<div class="modal-backdrop" *ngIf="modalVisible" (click)="cerrarModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">
+        <div class="modal-icon">
+          <i class="fa-solid fa-gauge"></i>
+        </div>
+        <div>
+          <h3>{{ modoEdicion ? 'Editar sensor' : 'Nuevo sensor' }}</h3>
+          <p>{{ modoEdicion ? 'Modifique los datos del sensor' : 'Complete los datos para crear un nuevo sensor' }}</p>
+        </div>
+      </div>
+      <button class="modal-close" type="button" (click)="cerrarModal()" title="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <form class="modal-body" (ngSubmit)="guardarSensor()" #sensorForm="ngForm">
+      <div *ngIf="errorMessage" class="alert alert-error">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <div *ngIf="successMessage" class="alert alert-success">
+        <i class="fa-solid fa-check-circle"></i>
+        <span>{{ successMessage }}</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="tipo_sensor">
+            <i class="fa-solid fa-tag"></i>
+            Tipo de sensor *
+          </label>
+          <input
+            id="tipo_sensor"
+            type="text"
+            [(ngModel)]="formData.tipo_sensor"
+            name="tipo_sensor"
+            placeholder="Ej: Temperatura, Humedad, Presión"
+            required
+            #tipoInput="ngModel"
+            [class.error]="tipoInput.invalid && tipoInput.touched">
+          <small class="field-hint">Especifique el tipo de sensor a registrar</small>
+        </div>
+
+        <div class="form-field">
+          <label for="descripcion">
+            <i class="fa-solid fa-file-text"></i>
+            Descripción
+          </label>
+          <input
+            id="descripcion"
+            type="text"
+            [(ngModel)]="formData.descripcion"
+            name="descripcion"
+            placeholder="Ej: Sensor de temperatura ambiente">
+          <small class="field-hint">Descripción opcional del sensor</small>
+        </div>
+
+        <div class="form-field">
+          <label for="unidad_medida">
+            <i class="fa-solid fa-ruler"></i>
+            Unidad de medida
+          </label>
+          <input
+            id="unidad_medida"
+            type="text"
+            [(ngModel)]="formData.unidad_medida"
+            name="unidad_medida"
+            placeholder="Ej: °C, %, hPa">
+          <small class="field-hint">Unidad en la que mide el sensor</small>
+        </div>
+
+        <div class="form-field">
+          <label for="id_dispositivo">
+            <i class="fa-solid fa-microchip"></i>
+            ID de dispositivo
+          </label>
+          <input
+            id="id_dispositivo"
+            type="number"
+            [(ngModel)]="formData.id_dispositivo"
+            name="id_dispositivo"
+            placeholder="Ej: 1, 2, 3"
+            min="1"
+            step="1">
+          <small class="field-hint">ID del dispositivo al que pertenece el sensor</small>
+        </div>
+      </div>
+    </form>
+
+    <div class="modal-footer">
+      <button
+        class="btn btn-secondary"
+        type="button"
+        (click)="cerrarModal()"
+        [disabled]="saving">
+        <i class="fa-solid fa-xmark"></i>
+        Cancelar
+      </button>
+
+      <button
+        class="btn btn-primary"
+        type="button"
+        (click)="guardarSensor()"
+        [disabled]="saving || !formularioValido()">
+        <i class="fa-solid" [class.fa-plus]="!modoEdicion" [class.fa-save]="modoEdicion" [class.fa-spinner]="saving" [class.spin]="saving"></i>
+        {{ saving ? 'Guardando...' : (modoEdicion ? 'Actualizar' : 'Crear') }}
+      </button>
+    </div>
+  </div>
+</div>

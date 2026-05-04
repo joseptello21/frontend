@@ -1,0 +1,306 @@
+<section class="baterias-page">
+
+  <div class="hero-panel">
+    <div class="hero-content">
+      <span class="eyebrow">Sistema IoT</span>
+      <h2>Gestión de baterías</h2>
+      <p>
+        Supervise y controle las baterías del sistema.
+      </p>
+
+      <div class="hero-actions">
+        <button class="btn btn-secondary" type="button" (click)="volver()">
+          <i class="fa-solid fa-arrow-left"></i>
+          Volver
+        </button>
+
+        <button class="btn btn-light" type="button" (click)="refrescar()" [disabled]="loading || refreshing">
+          <i class="fa-solid fa-rotate" [class.spin]="refreshing"></i>
+          Actualizar
+        </button>
+
+        <button class="btn btn-primary" type="button" (click)="abrirModalCrear()">
+          <i class="fa-solid fa-plus"></i>
+          Nueva batería
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <article class="metric-card">
+      <div class="metric-icon blue">
+        <i class="fa-solid fa-battery-half"></i>
+      </div>
+
+      <div>
+        <h3>{{ baterias.length }}</h3>
+        <p>Total baterías</p>
+      </div>
+    </article>
+  </div>
+
+  <section class="workspace-card">
+    <div class="workspace-header">
+      <div>
+        <h3>Inventario de baterías</h3>
+        <p>
+          Consulte el estado y características de cada batería.
+          <span class="updating" *ngIf="refreshing">Actualizando datos...</span>
+        </p>
+      </div>
+
+      <div class="workspace-controls">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input
+            type="text"
+            placeholder="Buscar baterías..."
+            (input)="buscar($event)"
+            [value]="searchTerm">
+        </div>
+
+        <div class="view-switch">
+          <button
+            type="button"
+            [class.active]="viewMode === 'grid'"
+            (click)="cambiarVista('grid')"
+            title="Vista de cuadrícula">
+            <i class="fa-solid fa-grip"></i>
+          </button>
+
+          <button
+            type="button"
+            [class.active]="viewMode === 'table'"
+            (click)="cambiarVista('table')"
+            title="Vista de tabla">
+            <i class="fa-solid fa-table-list"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="baterias-grid" *ngIf="!loading && viewMode === 'grid' && bateriasFiltradas.length > 0">
+      <article class="bateria-card" *ngFor="let bateria of bateriasFiltradas">
+
+        <div class="bateria-card-header">
+          <div class="bateria-identity">
+            <div class="bateria-avatar" [class.active]="bateria.estado === 'activo'">
+              <i class="fa-solid fa-battery-half"></i>
+            </div>
+
+            <div>
+              <h4>{{ bateria.capacidad_ah }}Ah - {{ bateria.voltaje }}V</h4>
+              <p>ID: {{ bateria.id_bateria }}</p>
+            </div>
+          </div>
+
+          <span
+            class="state-pill"
+            [class.active]="bateria.estado === 'activo'"
+            [class.inactive]="bateria.estado === 'inactivo'"
+            [class.cargando]="bateria.estado === 'cargando'"
+            [class.descargando]="bateria.estado === 'descargando'">
+            <span></span>
+            {{ bateria.estado || 'Desconocido' }}
+          </span>
+        </div>
+
+        <div class="bateria-info-row">
+          <span class="info-label">
+            <i class="fa-solid fa-bolt"></i>
+            {{ bateria.capacidad_ah }}Ah
+          </span>
+
+          <span class="panel-label">
+            <i class="fa-solid fa-solar-panel"></i>
+            Panel {{ bateria.id_panel || 'N/A' }}
+          </span>
+        </div>
+
+        <div class="bateria-info-grid">
+          <div class="info-item">
+            <span>Voltaje</span>
+            <strong>{{ bateria.voltaje }}V</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Panel</span>
+            <strong>{{ bateria.id_panel || 'N/A' }}</strong>
+          </div>
+        </div>
+
+        <div class="bateria-actions">
+          <button class="action-button edit" type="button" title="Editar" (click)="abrirModalEditar(bateria)">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button class="action-button delete" type="button" title="Eliminar" [disabled]="deletingId === bateria.id_bateria" (click)="eliminarBateria(bateria)">
+            <i class="fa-solid" [class.fa-trash]="deletingId !== bateria.id_bateria" [class.fa-spinner]="deletingId === bateria.id_bateria" [class.spin]="deletingId === bateria.id_bateria"></i>
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && viewMode === 'table'">
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Capacidad (Ah)</th>
+              <th>Voltaje (V)</th>
+              <th>Estado</th>
+              <th>Panel</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let bateria of bateriasFiltradas">
+              <td>{{ bateria.id_bateria }}</td>
+              <td>{{ bateria.capacidad_ah }}</td>
+              <td>{{ bateria.voltaje }}</td>
+              <td>
+                <span class="status-badge" [class]="bateria.estado?.toLowerCase()">
+                  {{ bateria.estado || 'Desconocido' }}
+                </span>
+              </td>
+              <td>{{ bateria.id_panel || 'N/A' }}</td>
+              <td class="actions">
+                <button class="action-button edit" type="button" title="Editar" (click)="abrirModalEditar(bateria)">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="action-button delete" type="button" title="Eliminar" [disabled]="deletingId === bateria.id_bateria" (click)="eliminarBateria(bateria)">
+                  <i class="fa-solid" [class.fa-trash]="deletingId !== bateria.id_bateria" [class.fa-spinner]="deletingId === bateria.id_bateria" [class.spin]="deletingId === bateria.id_bateria"></i>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="bateriasFiltradas.length === 0">
+              <td colspan="6" class="empty-state">
+                <i class="fa-solid fa-battery-half"></i>
+                <p>No hay baterías registradas</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      <i class="fa-solid fa-spinner spin"></i>
+      <p>Cargando baterías...</p>
+    </div>
+  </section>
+
+</section>
+
+  <div class="modal-backdrop" *ngIf="modalVisible">
+    <div class="modal-container">
+
+      <div class="modal-header">
+        <div class="modal-title">
+          <div class="modal-icon">
+            <i class="fa-solid fa-battery-half"></i>
+          </div>
+
+          <div>
+            <h3>{{ modoEdicion ? 'Editar batería' : 'Nueva batería' }}</h3>
+            <p>
+              {{ modoEdicion ? 'Actualice la información técnica de la batería.' : 'Registre una nueva batería dentro del sistema.' }}
+            </p>
+          </div>
+        </div>
+
+        <button class="modal-close" type="button" (click)="cerrarModal()" [disabled]="saving">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="alert alert-error" *ngIf="errorMessage">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <form class="form-grid" (ngSubmit)="guardarBateria()">
+          <div class="form-field">
+            <label>
+              <i class="fa-solid fa-bolt"></i>
+              Capacidad (Ah) *
+            </label>
+            <input
+              type="number"
+              name="capacidad_ah"
+              [(ngModel)]="formData.capacidad_ah"
+              placeholder="Ej: 100"
+              [disabled]="saving"
+              required>
+            <span class="field-hint">Capacidad en amperios-hora de la batería</span>
+          </div>
+
+          <div class="form-field">
+            <label>
+              <i class="fa-solid fa-gauge"></i>
+              Voltaje (V)
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              name="voltaje"
+              [(ngModel)]="formData.voltaje"
+              placeholder="Ej: 12.0"
+              [disabled]="saving">
+            <span class="field-hint">Voltaje nominal de la batería</span>
+          </div>
+
+          <div class="form-field">
+            <label>
+              <i class="fa-solid fa-circle-dot"></i>
+              Estado
+            </label>
+            <select
+              name="estado"
+              [(ngModel)]="formData.estado"
+              [disabled]="saving">
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+              <option value="cargando">Cargando</option>
+              <option value="descargando">Descargando</option>
+              <option value="mantenimiento">Mantenimiento</option>
+            </select>
+            <span class="field-hint">Estado operativo actual de la batería</span>
+          </div>
+
+          <div class="form-field">
+            <label>
+              <i class="fa-solid fa-solar-panel"></i>
+              ID de panel
+            </label>
+            <input
+              type="number"
+              name="id_panel"
+              [(ngModel)]="formData.id_panel"
+              placeholder="Ej: 1"
+              [disabled]="saving">
+            <span class="field-hint">Identificador del panel solar asociado</span>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" (click)="cerrarModal()" [disabled]="saving">
+          Cancelar
+        </button>
+
+        <button class="btn btn-primary" type="submit" [disabled]="saving" (click)="guardarBateria()">
+          <span *ngIf="!saving">
+            {{ modoEdicion ? 'Actualizar batería' : 'Guardar batería' }}
+          </span>
+
+          <span *ngIf="saving">
+            <i class="fa-solid fa-spinner spin"></i>
+            Guardando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>

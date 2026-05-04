@@ -1,0 +1,172 @@
+<div class="data-view">
+
+  <header class="header">
+    <h1>Monitor de Datos del Sistema IoT</h1>
+    <p>Usuario: {{ usuario?.username || 'N/A' }} | Estado: Activo</p>
+  </header>
+
+  <!-- Dispositivos Section -->
+  <section class="data-section">
+    <h3>Dispositivos IoT</h3>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Última conexión</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let dispositivo of dispositivos">
+            <td>{{ dispositivo.id }}</td>
+            <td>{{ dispositivo.nombre || 'N/A' }}</td>
+            <td>{{ dispositivo.tipo || 'N/A' }}</td>
+            <td>
+              <span class="status-badge" [class]="dispositivo.estado?.toLowerCase()">
+                {{ dispositivo.estado || 'Desconocido' }}
+              </span>
+            </td>
+            <td>{{ dispositivo.ultima_conexion || 'Nunca' }}</td>
+          </tr>
+          <tr *ngIf="dispositivos.length === 0">
+            <td colspan="5" class="empty-state">No hay dispositivos registrados</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Luminarias Section -->
+  <section class="data-section">
+    <h3>Luminarias</h3>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tipo</th>
+            <th>Potencia (W)</th>
+            <th>Estado</th>
+            <th>Zona</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let luminaria of luminarias">
+            <td>{{ luminaria.id_luminaria }}</td>
+            <td>{{ luminaria.tipo_luminaria || 'N/A' }}</td>
+            <td>{{ luminaria.potencia_watts || 'N/A' }}</td>
+            <td>
+              <span class="status-badge" [class]="luminaria.estado?.toLowerCase()">
+                {{ luminaria.estado || 'Desconocido' }}
+              </span>
+            </td>
+            <td>{{ luminaria.id_zona || 'N/A' }}</td>
+          </tr>
+          <tr *ngIf="luminarias.length === 0">
+            <td colspan="5" class="empty-state">No hay luminarias registradas</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Sensores Section -->
+  <section class="data-section">
+    <h3>Sensores</h3>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tipo</th>
+            <th>Descripción</th>
+            <th>Unidad</th>
+            <th>Dispositivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sensor of sensores">
+            <td>{{ sensor.id_sensor }}</td>
+            <td>{{ sensor.tipo_sensor }}</td>
+            <td>{{ sensor.descripcion || 'N/A' }}</td>
+            <td>{{ sensor.unidad_medida || 'N/A' }}</td>
+            <td>{{ sensor.id_dispositivo || 'N/A' }}</td>
+          </tr>
+          <tr *ngIf="sensores.length === 0">
+            <td colspan="5" class="empty-state">No hay sensores registrados</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Baterías Section -->
+  <section class="data-section">
+    <h3>Baterías</h3>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Capacidad (Ah)</th>
+            <th>Voltaje (V)</th>
+            <th>Estado</th>
+            <th>Panel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let bateria of baterias">
+            <td>{{ bateria.id_bateria }}</td>
+            <td>{{ bateria.capacidad_ah }}</td>
+            <td>{{ bateria.voltaje }}</td>
+            <td>
+              <span class="status-badge" [class]="bateria.estado?.toLowerCase()">
+                {{ bateria.estado || 'Desconocido' }}
+              </span>
+            </td>
+            <td>{{ bateria.id_panel || 'N/A' }}</td>
+          </tr>
+          <tr *ngIf="baterias.length === 0">
+            <td colspan="5" class="empty-state">No hay baterías registradas</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Usuarios Section -->
+  <section class="data-section">
+    <h3>Usuarios</h3>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of usuarios">
+            <td>{{ user.idusuarios }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+              <span class="status-badge" [class]="user.estado?.toLowerCase()">
+                {{ user.estado || 'Desconocido' }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="usuarios.length === 0">
+            <td colspan="4" class="empty-state">No hay usuarios registrados</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>

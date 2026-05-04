@@ -1,0 +1,20 @@
+<header class="topbar">
+
+  <div class="page-title">
+    <h1>Panel administrativo</h1>
+    <p>Gestión segura basada en roles y permisos</p>
+  </div>
+
+  <div class="user-area">
+    <div class="user-info">
+      <strong>{{ usuario?.nombre }} {{ usuario?.apellido }}</strong>
+      <span>{{ usuario?.username }}</span>
+    </div>
+
+    <button class="logout-button" type="button" (click)="logout()">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      <span>Salir</span>
+    </button>
+  </div>
+
+</header>
