@@ -6,6 +6,7 @@ import {
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { SensorService, Sensor, CreateSensor } from '../../core/services/sensor.service';
@@ -39,7 +40,8 @@ export class Sensores implements OnInit {
   constructor(
     private sensorService: SensorService,
     private cdr: ChangeDetectorRef,
-    private location: Location
+    private location: Location,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -250,5 +252,9 @@ export class Sensores implements OnInit {
     }
 
     return 'Ocurrió un error. Intente nuevamente.';
+  }
+
+  volverAlDashboard(): void {
+    this.router.navigate(['/dashboard']);
   }
 }

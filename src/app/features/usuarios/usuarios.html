@@ -3,15 +3,15 @@
   <div class="hero-panel">
     <div class="hero-content">
       <span class="eyebrow">Sistema IoT</span>
-      <h2>Gestión de usuarios</h2>
+      <h2>{{ isAdmin ? 'Gestión de usuarios' : 'Mi perfil' }}</h2>
       <p>
-        Administre los usuarios registrados en el sistema.
+        {{ isAdmin ? 'Administre los usuarios registrados en el sistema.' : 'Visualice y edite su información de perfil.' }}
       </p>
 
       <div class="hero-actions">
-        <button class="btn btn-secondary" type="button" (click)="volver()">
+        <button class="btn btn-secondary" type="button" (click)="volverAlDashboard()">
           <i class="fa-solid fa-arrow-left"></i>
-          Volver
+          Volver al Panel
         </button>
 
         <button class="btn btn-light" type="button" (click)="refrescar()" [disabled]="loading || refreshing">
@@ -19,7 +19,7 @@
           Actualizar
         </button>
 
-        <button class="btn btn-primary" type="button" (click)="abrirModalCrear()">
+        <button *ngIf="isAdmin" class="btn btn-primary" type="button" (click)="abrirModalCrear()">
           <i class="fa-solid fa-plus"></i>
           Nuevo usuario
         </button>
@@ -35,7 +35,7 @@
 
       <div>
         <h3>{{ usuarios.length }}</h3>
-        <p>Total usuarios</p>
+        <p>{{ isAdmin ? 'Total usuarios' : 'Mi cuenta' }}</p>
       </div>
     </article>
   </div>
@@ -53,9 +53,9 @@
   <section class="workspace-card">
     <div class="workspace-header">
       <div>
-        <h3>Inventario de usuarios</h3>
+        <h3>{{ isAdmin ? 'Inventario de usuarios' : 'Información del perfil' }}</h3>
         <p>
-          Consulte el estado y características de cada usuario.
+          {{ isAdmin ? 'Consulte el estado y características de cada usuario.' : 'Visualice su información personal y de cuenta.' }}
           <span class="updating" *ngIf="refreshing">Actualizando datos...</span>
         </p>
       </div>
@@ -110,7 +110,7 @@
               <th>Nombre</th>
               <th>Email</th>
               <th>Estado</th>
-              <th class="text-right">Acciones</th>
+              <th *ngIf="isAdmin" class="text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -132,7 +132,7 @@
                   {{ usuario.estado || 'Activo' }}
                 </span>
               </td>
-              <td class="actions">
+              <td *ngIf="isAdmin" class="actions">
                 <button class="action-button edit" type="button" title="Editar" (click)="abrirModalEditar(usuario)">
                   <i class="fa-solid fa-pen"></i>
                 </button>
@@ -142,9 +142,9 @@
               </td>
             </tr>
             <tr *ngIf="usuariosFiltrados.length === 0">
-              <td colspan="5" class="empty-state">
+              <td [attr.colspan]="isAdmin ? 5 : 4" class="empty-state">
                 <i class="fa-solid fa-users"></i>
-                <p>No hay usuarios registrados</p>
+                <p>{{ isAdmin ? 'No hay usuarios registrados' : 'No se pudo cargar su perfil' }}</p>
               </td>
             </tr>
           </tbody>

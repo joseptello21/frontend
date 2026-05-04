@@ -92,4 +92,13 @@ export class AuthService {
     isAuthenticated(): boolean {
         return this.storageService.isAuthenticated();
     }
+
+    currentUser(): Usuario | null {
+        return this.storageService.getUsuario();
+    }
+
+    isAdmin(): boolean {
+        const user = this.currentUser();
+        return user?.email === 'admin' || user?.username === 'admin';
+    }
 }

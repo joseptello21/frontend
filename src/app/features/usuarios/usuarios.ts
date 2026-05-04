@@ -1,10 +1,12 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { Usuario } from '../../core/models/usuario.model';
 import { UsuarioService } from '../../core/services/usuario.service';
+import { AuthService } from '../../core/services/auth.service';
 
 type ViewMode = 'grid' | 'table';
 
@@ -34,13 +36,20 @@ export class UsuariosComponent implements OnInit {
   formData: any = { nombre: '', email: '', password: '' };
   viewMode: 'grid' | 'table' = 'table';
 
+  isAdmin = false;
+  currentUser: Usuario | null = null;
+
   constructor(
     private usuarioService: UsuarioService,
     private location: Location,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
+    this.currentUser = this.authService.currentUser();
+    this.isAdmin = this.authService.isAdmin();
     this.cargarUsuarios();
   }
 
@@ -48,6 +57,16 @@ export class UsuariosComponent implements OnInit {
     this.loading = true;
     this.errorMessage = '';
 
+    if (!this.isAdmin && this.currentUser) {
+      // Si no es admin, solo mostrar su propio perfil
+      this.usuarios = [this.currentUser];
+      this.usuariosFiltrados = [this.currentUser];
+      this.loading = false;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    // Si es admin, cargar todos los usuarios
     this.usuarioService.listar().pipe(
       finalize(() => {
         this.loading = false;
@@ -72,6 +91,17 @@ export class UsuariosComponent implements OnInit {
 
   refrescar(): void {
     this.refreshing = true;
+
+    if (!this.isAdmin && this.currentUser) {
+      // Si no es admin, solo refrescar su propio perfil
+      this.usuarios = [this.currentUser];
+      this.usuariosFiltrados = [this.currentUser];
+      this.refreshing = false;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    // Si es admin, refrescar todos los usuarios
     this.usuarioService.listar().pipe(
       finalize(() => {
         this.refreshing = false;
@@ -92,6 +122,10 @@ export class UsuariosComponent implements OnInit {
         this.errorMessage = 'No fue posible refrescar los usuarios.';
       }
     });
+  }
+
+  volverAlDashboard(): void {
+    this.router.navigate(['/dashboard']);
   }
 
   buscar(event: Event): void {

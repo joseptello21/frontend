@@ -6,6 +6,7 @@ import {
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { Device } from '../../core/models/device.model';
@@ -48,7 +49,8 @@ export class Dispositivos implements OnInit {
   constructor(
     private deviceService: DeviceService,
     private cdr: ChangeDetectorRef,
-    private location: Location
+    private location: Location,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -278,8 +280,8 @@ export class Dispositivos implements OnInit {
       });
   }
 
-  volver(): void {
-    this.location.back();
+  volverAlDashboard(): void {
+    this.router.navigate(['/dashboard']);
   }
 
   refrescar(): void {

@@ -6,6 +6,7 @@ import {
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { LuminariaService, Luminaria, CreateLuminaria } from '../../core/services/luminaria.service';
@@ -40,7 +41,8 @@ export class Luminarias implements OnInit {
   constructor(
     private luminariaService: LuminariaService,
     private cdr: ChangeDetectorRef,
-    private location: Location
+    private location: Location,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -208,5 +210,9 @@ export class Luminarias implements OnInit {
 
   formularioValido(): boolean {
     return !!(this.formData.tipo_luminaria?.trim());
+  }
+
+  volverAlDashboard(): void {
+    this.router.navigate(['/dashboard']);
   }
 }
