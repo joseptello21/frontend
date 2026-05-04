@@ -11,6 +11,9 @@
     "railway:start": "npm run serve:prod"
   },
   "private": true,
+  "engines": {
+    "node": ">=20.20.0 <21"
+  },
   "dependencies": {
     "@angular/common": "^21.2.0",
     "@angular/compiler": "^21.2.0",
