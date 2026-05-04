@@ -2,7 +2,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { StorageService } from '../../core/services/storage.service';
 import { Usuario } from '../../core/models/usuario.model';
 import { Rol } from '../../core/models/rol.model';
@@ -38,7 +38,8 @@ export class DataViewComponent implements OnInit {
     private luminariaService: LuminariaService,
     private sensorService: SensorService,
     private bateriaService: BateriaService,
-    private usuarioService: UsuarioService
+    private usuarioService: UsuarioService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -135,5 +136,9 @@ export class DataViewComponent implements OnInit {
       },
       error: (err: any) => console.log('Using example data for usuarios')
     });
+  }
+
+  volverAlDashboard(): void {
+    this.router.navigate(['/dashboard']);
   }
 }

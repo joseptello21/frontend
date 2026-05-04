@@ -1,8 +1,16 @@
 <div class="data-view">
 
   <header class="header">
-    <h1>Monitor de Datos del Sistema IoT</h1>
-    <p>Usuario: {{ usuario?.username || 'N/A' }} | Estado: Activo</p>
+    <div class="header-top">
+      <button class="btn btn-secondary back-button" type="button" (click)="volverAlDashboard()">
+        <i class="fa-solid fa-arrow-left"></i>
+        Volver al Panel
+      </button>
+      <div>
+        <h1>Monitor de Datos del Sistema IoT</h1>
+        <p>Usuario: {{ usuario?.username || 'N/A' }} | Estado: Activo</p>
+      </div>
+    </div>
   </header>
 
   <!-- Dispositivos Section -->
