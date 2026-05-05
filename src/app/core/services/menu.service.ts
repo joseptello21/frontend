@@ -158,6 +158,11 @@ export class MenuService {
       .getRecursos()
       .filter(recurso => this.estaActivo(recurso.estado));
 
+    // Si no hay recursos cargados, permitir acceso (será implementado en el backend después)
+    if (recursos.length === 0) {
+      return true;
+    }
+
     return recursos.some(recurso => {
       const rutaFrontend = this.normalizarRutaFrontend(
         recurso.url_frontend || recurso.path || ''
