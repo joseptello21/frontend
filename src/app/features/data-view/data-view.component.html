@@ -32,14 +32,14 @@
         <tbody>
           <tr *ngFor="let dispositivo of dispositivos">
             <td>{{ dispositivo.id }}</td>
-            <td>{{ dispositivo.nombre || 'N/A' }}</td>
-            <td>{{ dispositivo.tipo || 'N/A' }}</td>
+            <td>{{ dispositivo.nombre || dispositivo.name || 'N/A' }}</td>
+            <td>{{ dispositivo.tipo || dispositivo.device_type || 'N/A' }}</td>
             <td>
-              <span class="status-badge" [class]="dispositivo.estado?.toLowerCase()">
-                {{ dispositivo.estado || 'Desconocido' }}
+              <span class="status-badge" [class]="(dispositivo.estado || dispositivo.status)?.toLowerCase()">
+                {{ dispositivo.estado || dispositivo.status || 'Desconocido' }}
               </span>
             </td>
-            <td>{{ dispositivo.ultima_conexion || 'Nunca' }}</td>
+            <td>{{ dispositivo.ultima_conexion || dispositivo.last_seen || dispositivo.updated_at || dispositivo.created_at || 'Nunca' }}</td>
           </tr>
           <tr *ngIf="dispositivos.length === 0">
             <td colspan="5" class="empty-state">No hay dispositivos registrados</td>

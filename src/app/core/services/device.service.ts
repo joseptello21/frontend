@@ -32,8 +32,13 @@ export class DeviceService {
   }
 
   getAll(): Observable<Device[]> {
-    return this.http.get<{ devices: Device[] }>(this.apiUrl, { headers: this.getHeaders() })
-      .pipe(map(response => response.devices || []));
+    return this.http.get<any>(this.apiUrl, { headers: this.getHeaders() })
+      .pipe(map(response => {
+        if (Array.isArray(response)) {
+          return response;
+        }
+        return response.devices || response.dispositivos || response.data || response.items || [];
+      }));
   }
 
   getById(id: number): Observable<{ device: Device }> {

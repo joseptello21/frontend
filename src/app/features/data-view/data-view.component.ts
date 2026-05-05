@@ -86,57 +86,85 @@ export class DataViewComponent implements OnInit {
     this.loadRealData();
   }
 
+  private normalizeArrayResponse<T>(data: any, keys: string[]): T[] {
+    if (Array.isArray(data)) {
+      return data;
+    }
+    for (const key of keys) {
+      if (Array.isArray(data?.[key])) {
+        return data[key];
+      }
+    }
+    return [];
+  }
+
+  private mapDeviceToDisplay(device: any) {
+    return {
+      ...device,
+      nombre: device.nombre || device.name || device.device_id || device.id || 'N/A',
+      tipo: device.tipo || device.device_type || device.tipo_dispositivo || 'N/A',
+      estado: device.estado || device.status || (device.active === true ? 'activo' : device.active === false ? 'inactivo' : 'Desconocido'),
+      ultima_conexion: device.ultima_conexion || device.last_seen || device.updated_at || device.created_at || 'N/A'
+    };
+  }
+
   private loadRealData(): void {
     // Cargar dispositivos
     this.deviceService.listar().subscribe({
       next: (data: any) => {
-        if (data && data.length > 0) {
-          this.dispositivos = data;
+        const dispositivos = this.normalizeArrayResponse<any>(data, ['devices', 'dispositivos', 'items', 'data']);
+        if (dispositivos.length > 0) {
+          this.dispositivos = dispositivos.map(device => this.mapDeviceToDisplay(device));
         }
       },
-      error: (err: any) => console.log('Using example data for devices')
+      error: (err: any) => console.log('Using example data for devices', err)
     });
 
     // Cargar luminarias
     this.luminariaService.getAll().subscribe({
       next: (data: any) => {
-        if (data && data.length > 0) {
-          this.luminarias = data;
+        const luminarias = this.normalizeArrayResponse<any>(data, ['luminarias', 'items', 'data']);
+        if (luminarias.length > 0) {
+          this.luminarias = luminarias;
         }
       },
-      error: (err: any) => console.log('Using example data for luminarias')
+      error: (err: any) => console.log('Using example data for luminarias', err)
     });
 
     // Cargar sensores
     this.sensorService.getAll().subscribe({
       next: (data: any) => {
-        if (data && data.length > 0) {
-          this.sensores = data;
+        const sensores = this.normalizeArrayResponse<any>(data, ['sensores', 'sensors', 'items', 'data']);
+        if (sensores.length > 0) {
+          this.sensores = sensores;
         }
       },
-      error: (err: any) => console.log('Using example data for sensores')
+      error: (err: any) => console.log('Using example data for sensores', err)
     });
 
     // Cargar baterías
     this.bateriaService.getAll().subscribe({
       next: (data: any) => {
-        if (data && data.length > 0) {
-          this.baterias = data;
+        const baterias = this.normalizeArrayResponse<any>(data, ['baterias', 'items', 'data']);
+        if (baterias.length > 0) {
+          this.baterias = baterias;
         }
       },
-      error: (err: any) => console.log('Using example data for baterias')
+      error: (err: any) => console.log('Using example data for baterias', err)
     });
 
     // Cargar usuarios
     this.usuarioService.listar().subscribe({
       next: (data: any) => {
-        if (data && data.length > 0) {
-          this.usuarios = data;
+        const usuarios = this.normalizeArrayResponse<any>(data, ['usuarios', 'users', 'items', 'data']);
+        if (usuarios.length > 0) {
+          this.usuarios = usuarios;
         }
       },
-      error: (err: any) => console.log('Using example data for usuarios')
+      error: (err: any) => console.log('Using example data for usuarios', err)
     });
   }
+
 
   volverAlDashboard(): void {
     this.router.navigate(['/dashboard']);
