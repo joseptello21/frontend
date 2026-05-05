@@ -152,8 +152,8 @@ export class Dispositivos implements OnInit {
     this.dispositivoForm = {
       name: dispositivo.name || '',
       location: dispositivo.location || '',
-      status: dispositivo.status || 'activo',
-      mode: dispositivo.mode || 'normal'
+      status: this.convertirEstadoBackend(dispositivo.status),
+      mode: this.convertirModoBackend(dispositivo.mode)
     };
 
     this.errorMessage = '';
@@ -300,8 +300,42 @@ export class Dispositivos implements OnInit {
       name: '',
       location: '',
       status: 'activo',
-      mode: 'normal'
+      mode: 'automatico'
     };
+  }
+
+  convertirEstadoBackend(estado?: string): string {
+    const valor = this.normalizarTexto(estado);
+
+    if (valor === 'inactivo' || valor === 'mantenimiento') {
+      return 'inactivo';
+    }
+
+    return 'activo';
+  }
+
+  convertirModoBackend(modo?: string): string {
+    const valor = this.normalizarTexto(modo);
+
+    if (valor === 'manual' || valor === 'debug' || valor === 'test') {
+      return 'manual';
+    }
+
+    return 'automatico';
+  }
+
+  etiquetaModo(modo?: string): string {
+    const valor = this.normalizarTexto(modo);
+
+    if (valor === 'manual') {
+      return 'Manual';
+    }
+
+    if (valor === 'automatico') {
+      return 'Automático';
+    }
+
+    return modo || 'Automático';
   }
 
   trackByDeviceId(index: number, dispositivo: Device): number {

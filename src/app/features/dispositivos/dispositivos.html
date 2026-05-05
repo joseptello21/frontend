@@ -233,7 +233,7 @@
           </span>
 
           <span class="active-label" [class.enabled]="dispositivo.status === 'activo'" [class.disabled]="dispositivo.status !== 'activo'">
-            {{ dispositivo.mode || 'normal' }}
+            {{ etiquetaModo(dispositivo.mode) }}
           </span>
         </div>
 
@@ -245,7 +245,7 @@
 
           <div class="info-item">
             <span>Modo</span>
-            <strong>{{ dispositivo.mode || 'normal' }}</strong>
+            <strong>{{ etiquetaModo(dispositivo.mode) }}</strong>
           </div>
 
           <div class="info-item">
@@ -342,7 +342,7 @@
               </span>
             </td>
 
-            <td>{{ dispositivo.mode || 'normal' }}</td>
+            <td>{{ etiquetaModo(dispositivo.mode) }}</td>
 
             <td>
               <span class="active-dot" [class.enabled]="dispositivo.active">
@@ -462,9 +462,8 @@
                 name="mode"
                 [(ngModel)]="dispositivoForm.mode"
                 [disabled]="saving">
-                <option value="normal">Normal</option>
-                <option value="debug">Debug</option>
-                <option value="test">Test</option>
+                <option value="automatico">Automático</option>
+                <option value="manual">Manual</option>
               </select>
             </div>
           </div>

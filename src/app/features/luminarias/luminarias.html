@@ -98,9 +98,7 @@
           <span
             class="state-pill"
             [class.active]="luminaria.estado === 'activo'"
-            [class.inactive]="luminaria.estado === 'inactivo'"
-            [class.encendido]="luminaria.estado === 'encendido'"
-            [class.apagado]="luminaria.estado === 'apagado'">
+            [class.inactive]="luminaria.estado === 'inactivo'">
             <span></span>
             {{ luminaria.estado || 'Desconocido' }}
           </span>
@@ -265,8 +263,6 @@
             class="form-select">
             <option value="activo">Activo</option>
             <option value="inactivo">Inactivo</option>
-            <option value="encendido">Encendido</option>
-            <option value="apagado">Apagado</option>
           </select>
           <small class="field-hint">Estado operativo de la luminaria</small>
         </div>
