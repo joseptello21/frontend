@@ -58,8 +58,8 @@ export class Luminarias implements OnInit {
       })
     ).subscribe({
       next: (luminarias) => {
-        this.luminarias = luminarias;
-        this.luminariasFiltradas = [...luminarias];
+        this.luminarias = luminarias.map(item => this.normalizeLuminaria(item));
+        this.luminariasFiltradas = [...this.luminarias];
       },
       error: (error) => {
         console.error('Error loading luminarias:', error);
@@ -130,7 +130,7 @@ export class Luminarias implements OnInit {
   cerrarModal(): void {
     this.modalVisible = false;
     this.luminariaSeleccionada = null;
-    this.formData = {};
+    this.formData = { tipo_luminaria: '', potencia_watts: undefined, estado: 'activo', id_zona: undefined };
     this.errorMessage = '';
     this.cdr.markForCheck();
   }
@@ -149,11 +149,18 @@ export class Luminarias implements OnInit {
     };
 
     if (this.modoEdicion && this.luminariaSeleccionada) {
-      this.luminariaService.update(this.luminariaSeleccionada.id_luminaria, payload).pipe(
+      const luminariaId = this.getLuminariaId(this.luminariaSeleccionada);
+      if (luminariaId === null) {
+        this.errorMessage = 'No se identificó el ID de la luminaria para actualizar.';
+        return;
+      }
+
+      this.luminariaService.update(luminariaId, payload).pipe(
         finalize(() => this.cdr.markForCheck())
       ).subscribe({
         next: (updated) => {
-          this.luminarias = this.luminarias.map(item => item.id_luminaria === updated.id_luminaria ? updated : item);
+          const normalized = this.normalizeLuminaria(updated);
+          this.luminarias = this.luminarias.map(item => this.getLuminariaId(item) === this.getLuminariaId(normalized) ? normalized : item);
           this.luminariasFiltradas = [...this.luminarias];
           this.successMessage = 'Luminaria actualizada correctamente.';
           this.cerrarModal();

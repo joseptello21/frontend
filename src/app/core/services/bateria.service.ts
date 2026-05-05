@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthHeadersService } from './auth-headers.service';
 
@@ -31,20 +31,35 @@ export class BateriaService {
     return this.authHeaders.getAuthHeaders();
   }
 
+  private normalizeResponse<T>(response: any): T {
+    if (response && typeof response === 'object') {
+      return response.data || response || response.result || response.results;
+    }
+    return response;
+  }
+
   getAll(): Observable<Bateria[]> {
-    return this.http.get<Bateria[]>(this.apiUrl, { headers: this.getHeaders() });
+    return this.http.get<any>(this.apiUrl, { headers: this.getHeaders() }).pipe(
+      map(response => this.normalizeResponse<Bateria[]>(response) || [])
+    );
   }
 
   getById(id: number): Observable<Bateria> {
-    return this.http.get<Bateria>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+    return this.http.get<any>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() }).pipe(
+      map(response => this.normalizeResponse<Bateria>(response))
+    );
   }
 
   create(data: CreateBateria): Observable<Bateria> {
-    return this.http.post<Bateria>(this.apiUrl, data, { headers: this.getHeaders() });
+    return this.http.post<any>(this.apiUrl, data, { headers: this.getHeaders() }).pipe(
+      map(response => this.normalizeResponse<Bateria>(response))
+    );
   }
 
   update(id: number, data: CreateBateria): Observable<Bateria> {
-    return this.http.put<Bateria>(`${this.apiUrl}/${id}`, data, { headers: this.getHeaders() });
+    return this.http.put<any>(`${this.apiUrl}/${id}`, data, { headers: this.getHeaders() }).pipe(
+      map(response => this.normalizeResponse<Bateria>(response))
+    );
   }
 
   delete(id: number): Observable<void> {

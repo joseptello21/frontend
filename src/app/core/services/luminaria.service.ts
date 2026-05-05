@@ -33,8 +33,14 @@ export class LuminariaService {
   }
 
   getAll(): Observable<Luminaria[]> {
-    return this.http.get<{ success: boolean; data: Luminaria[] }>(this.apiUrl, { headers: this.getHeaders() })
-      .pipe(map(response => response.data || []));
+    return this.http.get<any>(this.apiUrl, { headers: this.getHeaders() }).pipe(
+      map(response => {
+        if (Array.isArray(response)) {
+          return response;
+        }
+        return response.data || response.luminarias || response.items || [];
+      })
+    );
   }
 
   private preparePayload(data: CreateLuminaria) {
