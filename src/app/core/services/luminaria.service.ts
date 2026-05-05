@@ -45,13 +45,10 @@ export class LuminariaService {
 
   private preparePayload(data: CreateLuminaria) {
     return {
-      ...data,
-      tipo: data.tipo_luminaria,
-      potencia: data.potencia_watts,
-      id_zona: data.id_zona,
       tipo_luminaria: data.tipo_luminaria,
       potencia_watts: data.potencia_watts,
       estado: data.estado,
+      id_zona: data.id_zona
     };
   }
 
