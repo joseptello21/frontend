@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:21674'
+  apiUrl: 'https://proyectodiploma-production.up.railway.app'
 };
