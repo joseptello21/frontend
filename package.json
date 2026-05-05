@@ -8,7 +8,7 @@
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:prod": "npm run build && npx http-server ./browser/browser -p $PORT -c-1",
+    "serve:prod": "npm run build && npx http-server ./browser/browser -p $PORT -c-1 -s",
     "railway:start": "npm run serve:prod"
   },
   "private": true,
