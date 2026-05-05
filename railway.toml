@@ -1,5 +1,5 @@
 [build]
-builder = "NIXPACKS"
+builder = "RAILPACK"
 
 [deploy]
 startCommand = "npm run serve:prod"
@@ -10,7 +10,6 @@ restartPolicyMaxRetries = 10
 
 [build.env]
 NODE_ENV = "production"
-NIXPACKS_NODE_VERSION = "20.20.0"
 NODE_VERSION = "20.20.0"
 
 [deploy.env]
