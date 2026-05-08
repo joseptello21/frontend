@@ -21,7 +21,7 @@ export interface SolarTelemetry {
   providedIn: 'root'
 })
 export class TelemetryService {
-  private apiUrl = `${environment.apiUrl}/solar/telemetry`;
+  private apiUrl = `${environment.apiUrl}/api/solar/telemetry`;
 
   constructor(private http: HttpClient, private authHeaders: AuthHeadersService) {}
 
