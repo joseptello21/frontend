@@ -2,13 +2,11 @@
   "name": "frontend",
   "version": "0.0.0",
   "scripts": {
-    "ng": "node20\\node.exe .\\node_modules\\@angular\\cli\\bin\\ng.js",
-    "start": "node20\\node.exe node20\\node_modules\\npm\\bin\\npm-cli.js run ng-serve",
-    "ng-serve": "node20\\node.exe .\\node_modules\\@angular\\cli\\bin\\ng.js serve --host 0.0.0.0 --port 4200",
-    "build": "node20\\node.exe .\\node_modules\\@angular\\cli\\bin\\ng.js build --configuration production",
-    "build:local": "node20\\node.exe .\\node_modules\\@angular\\cli\\bin\\ng.js build --configuration production",
-    "watch": "node20\\node.exe .\\node_modules\\@angular\\cli\\bin\\ng.js build --watch --configuration development",
-    "test": "node20\\node.exe .\\node_modules\\@angular\\cli\\bin\\ng.js test",
+    "ng": "ng",
+    "start": "ng serve --host 0.0.0.0 --port 4200",
+    "build": "ng build --configuration production",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
     "serve:prod": "npm run build && npx http-server ./browser/browser -p $PORT -c-1 -s",
     "railway:start": "npm run serve:prod"
   },
