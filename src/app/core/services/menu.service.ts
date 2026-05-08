@@ -12,7 +12,7 @@ export interface MenuItem {
   orden: number;
   padre: number | null;
   estado: string;
-  items: MenuItem[];
+  items?: MenuItem[];
 }
 
 @Injectable({
@@ -77,41 +77,41 @@ export class MenuService {
         items: []
       },
       {
-        id: 5,
+        id: 6,
         nombre: 'Baterías',
         path: '/baterias',
         icono: 'fa-solid fa-battery-half',
-        orden: 5,
+        orden: 6,
         padre: null,
         estado: 'activo',
         items: []
       },
       {
-        id: 6,
+        id: 7,
         nombre: 'Administración',
         path: '#',
         icono: 'fa-solid fa-cogs',
-        orden: 6,
+        orden: 7,
         padre: null,
         estado: 'activo',
         items: [
           {
-            id: 7,
+            id: 8,
             nombre: 'Usuarios',
             path: '/usuarios',
             icono: 'fa-solid fa-users',
             orden: 1,
-            padre: 6,
+            padre: 7,
             estado: 'activo',
             items: []
           },
           {
-            id: 8,
+            id: 9,
             nombre: 'Roles',
             path: '/roles',
             icono: 'fa-solid fa-shield-alt',
             orden: 2,
-            padre: 6,
+            padre: 7,
             estado: 'activo',
             items: []
           }

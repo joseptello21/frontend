@@ -12,17 +12,17 @@
   </div>
 
   <nav class="menu">
-    <div>Menu items: {{ menu?.length || 0 }}</div>
+    <div>Menu items: {{ menu.length || 0 }}</div>
 
     <ng-container *ngFor="let item of menu">
-      <div *ngIf="item.items?.length > 0; else menuLink" class="menu-group">
+      <div *ngIf="(item.items?.length ?? 0) > 0; else menuLink" class="menu-group">
         <button type="button" (click)="toggleItem(item.id)">
           <i [class]="item.icono"></i>
           <span>{{ item.nombre }}</span>
           <span class="arrow" [class.rotate]="isOpen(item.id)">&#9660;</span>
         </button>
         <div class="submenu" *ngIf="isOpen(item.id)">
-          <a *ngFor="let child of item.items" [routerLink]="child.path">{{ child.nombre }}</a>
+          <a *ngFor="let child of item.items ?? []" [routerLink]="child.path">{{ child.nombre }}</a>
         </div>
       </div>
       <ng-template #menuLink>
