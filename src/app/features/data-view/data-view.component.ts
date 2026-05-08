@@ -12,6 +12,7 @@ import { LuminariaService } from '../../core/services/luminaria.service';
 import { SensorService } from '../../core/services/sensor.service';
 import { BateriaService } from '../../core/services/bateria.service';
 import { UsuarioService } from '../../core/services/usuario.service';
+import { TelemetryService, SolarTelemetry } from '../../core/services/telemetry.service';
 
 @Component({
   selector: 'app-data-view',
@@ -31,6 +32,7 @@ export class DataViewComponent implements OnInit {
   sensores: any[] = [];
   baterias: any[] = [];
   usuarios: any[] = [];
+  telemetrias: SolarTelemetry[] = [];
 
   constructor(
     private storageService: StorageService,
@@ -39,6 +41,7 @@ export class DataViewComponent implements OnInit {
     private sensorService: SensorService,
     private bateriaService: BateriaService,
     private usuarioService: UsuarioService,
+    private telemetryService: TelemetryService,
     private router: Router
   ) {}
 
@@ -153,6 +156,17 @@ export class DataViewComponent implements OnInit {
       error: (err: any) => console.log('Using example data for baterias', err)
     });
 
+    // Cargar telemetría solar
+    this.telemetryService.getAll().subscribe({
+      next: (data: any) => {
+        const telemetrias = this.normalizeArrayResponse<any>(data, ['telemetrias', 'telemetria', 'items', 'data']);
+        if (telemetrias.length > 0) {
+          this.telemetrias = telemetrias.map((item: any) => this.mapTelemetryToDisplay(item));
+        }
+      },
+      error: (err: any) => console.log('Using example data for telemetría solar', err)
+    });
+
     // Cargar usuarios
     this.usuarioService.listar().subscribe({
       next: (data: any) => {
@@ -163,6 +177,20 @@ export class DataViewComponent implements OnInit {
       },
       error: (err: any) => console.log('Using example data for usuarios', err)
     });
+  }
+
+  private mapTelemetryToDisplay(telemetry: any): any {
+    return {
+      id: telemetry.id ?? telemetry.id_telemetria ?? telemetry.telemetry_id ?? 'N/A',
+      timestamp: telemetry.timestamp || telemetry.fecha || telemetry.created_at || telemetry.updated_at || 'N/A',
+      ldr: telemetry.ldr ?? telemetry.lux ?? telemetry.luminancia ?? null,
+      batteryVoltage: telemetry.batteryVoltage ?? telemetry.battery_voltage ?? telemetry.voltaje ?? telemetry.bat ?? null,
+      lamp: telemetry.lamp ?? telemetry.lampState ?? telemetry.lamp_status ?? telemetry.lampara ?? false,
+      autoMode: telemetry.autoMode ?? telemetry.is_auto ?? telemetry.auto ?? false,
+      manualStatus: telemetry.manualStatus ?? telemetry.manual ?? telemetry.manual_mode ?? false,
+      panelId: telemetry.panelId ?? telemetry.id_panel ?? telemetry.panel_id ?? 'N/A',
+      batteryId: telemetry.batteryId ?? telemetry.id_bateria ?? telemetry.battery_id ?? 'N/A'
+    };
   }
 
 

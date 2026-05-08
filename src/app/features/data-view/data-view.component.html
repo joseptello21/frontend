@@ -147,6 +147,44 @@
     </div>
   </section>
 
+  <!-- Telemetría Solar Section -->
+  <section class="data-section">
+    <h3>Telemetría Solar</h3>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Timestamp</th>
+            <th>LDR</th>
+            <th>Voltaje batería</th>
+            <th>Lámpara</th>
+            <th>Auto</th>
+            <th>Manual</th>
+            <th>Panel</th>
+            <th>Batería</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of telemetrias">
+            <td>{{ item.id }}</td>
+            <td>{{ item.timestamp }}</td>
+            <td>{{ item.ldr }}</td>
+            <td>{{ item.batteryVoltage }}</td>
+            <td>{{ item.lamp ? 'Encendido' : 'Apagado' }}</td>
+            <td>{{ item.autoMode ? 'Sí' : 'No' }}</td>
+            <td>{{ item.manualStatus ? 'Sí' : 'No' }}</td>
+            <td>{{ item.panelId }}</td>
+            <td>{{ item.batteryId }}</td>
+          </tr>
+          <tr *ngIf="telemetrias.length === 0">
+            <td colspan="9" class="empty-state">No hay telemetría disponible</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
   <!-- Usuarios Section -->
   <section class="data-section">
     <h3>Usuarios</h3>
