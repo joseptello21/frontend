@@ -182,14 +182,16 @@ export class DataViewComponent implements OnInit {
   private mapTelemetryToDisplay(telemetry: any): any {
     return {
       id: telemetry.id ?? telemetry.id_telemetria ?? telemetry.telemetry_id ?? 'N/A',
-      timestamp: telemetry.timestamp || telemetry.fecha || telemetry.created_at || telemetry.updated_at || 'N/A',
-      ldr: telemetry.ldr ?? telemetry.lux ?? telemetry.luminancia ?? null,
+      timestamp: telemetry.timestamp || telemetry.fecha_registro || telemetry.fecha || telemetry.created_at || telemetry.updated_at || 'N/A',
+      ldr: telemetry.ldr ?? telemetry.ldrValue ?? telemetry.ldr_value ?? telemetry.lux ?? telemetry.luminancia ?? null,
       batteryVoltage: telemetry.batteryVoltage ?? telemetry.battery_voltage ?? telemetry.voltaje ?? telemetry.bat ?? null,
-      lamp: telemetry.lamp ?? telemetry.lampState ?? telemetry.lamp_status ?? telemetry.lampara ?? false,
-      autoMode: telemetry.autoMode ?? telemetry.is_auto ?? telemetry.auto ?? false,
-      manualStatus: telemetry.manualStatus ?? telemetry.manual ?? telemetry.manual_mode ?? false,
+      lamp: telemetry.lamp ?? telemetry.lampState ?? telemetry.lamp_state ?? telemetry.lamp_status ?? telemetry.lampara ?? false,
+      autoMode: telemetry.autoMode ?? telemetry.auto_mode ?? telemetry.is_auto ?? telemetry.auto ?? false,
+      manualStatus: telemetry.manualStatus ?? telemetry.manualStatus ?? telemetry.manual_status ?? false,
       panelId: telemetry.panelId ?? telemetry.id_panel ?? telemetry.panel_id ?? 'N/A',
-      batteryId: telemetry.batteryId ?? telemetry.id_bateria ?? telemetry.battery_id ?? 'N/A'
+      batteryId: telemetry.batteryId ?? telemetry.id_bateria ?? telemetry.battery_id ?? 'N/A',
+      luminariaId: telemetry.luminariaId ?? telemetry.id_luminaria ?? telemetry.luminaria_id ?? 'N/A',
+      energiaGenerada: telemetry.energiaGenerada ?? telemetry.energia_generada ?? telemetry.energyGenerated ?? telemetry.energy ?? null,
     };
   }
 

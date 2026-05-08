@@ -38,9 +38,9 @@ export class MenuService {
       },
       {
         id: 2,
-        nombre: 'Dispositivos',
-        path: '/dispositivos',
-        icono: 'fa-solid fa-microchip',
+        nombre: 'Telemetría Solar',
+        path: '/data-view',
+        icono: 'fa-solid fa-solar-panel',
         orden: 2,
         padre: null,
         estado: 'activo',
@@ -48,9 +48,9 @@ export class MenuService {
       },
       {
         id: 3,
-        nombre: 'Luminarias',
-        path: '/luminarias',
-        icono: 'fa-solid fa-lightbulb',
+        nombre: 'Dispositivos',
+        path: '/dispositivos',
+        icono: 'fa-solid fa-microchip',
         orden: 3,
         padre: null,
         estado: 'activo',
@@ -58,10 +58,20 @@ export class MenuService {
       },
       {
         id: 4,
+        nombre: 'Luminarias',
+        path: '/luminarias',
+        icono: 'fa-solid fa-lightbulb',
+        orden: 4,
+        padre: null,
+        estado: 'activo',
+        items: []
+      },
+      {
+        id: 5,
         nombre: 'Sensores',
         path: '/sensores',
         icono: 'fa-solid fa-gauge',
-        orden: 4,
+        orden: 5,
         padre: null,
         estado: 'activo',
         items: []

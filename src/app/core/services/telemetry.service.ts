@@ -15,6 +15,8 @@ export interface SolarTelemetry {
   manualStatus?: boolean;
   panelId?: number | string;
   batteryId?: number | string;
+  luminariaId?: number | string;
+  energiaGenerada?: number;
 }
 
 @Injectable({

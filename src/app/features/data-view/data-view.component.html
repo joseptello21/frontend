@@ -163,6 +163,8 @@
             <th>Manual</th>
             <th>Panel</th>
             <th>Batería</th>
+            <th>Luminaria</th>
+            <th>Energía generada</th>
           </tr>
         </thead>
         <tbody>
@@ -176,9 +178,11 @@
             <td>{{ item.manualStatus ? 'Sí' : 'No' }}</td>
             <td>{{ item.panelId }}</td>
             <td>{{ item.batteryId }}</td>
+            <td>{{ item.luminariaId || 'N/A' }}</td>
+            <td>{{ item.energiaGenerada != null ? item.energiaGenerada : 'N/A' }}</td>
           </tr>
           <tr *ngIf="telemetrias.length === 0">
-            <td colspan="9" class="empty-state">No hay telemetría disponible</td>
+            <td colspan="11" class="empty-state">No hay telemetría disponible</td>
           </tr>
         </tbody>
       </table>
