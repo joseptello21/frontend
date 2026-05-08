@@ -145,6 +145,7 @@ export class MenuService {
         const padre = mapa.get(item.padre);
 
         if (padre) {
+          padre.items = padre.items ?? [];
           padre.items.push(item);
         }
       } else {
@@ -155,7 +156,9 @@ export class MenuService {
     raiz.sort((a, b) => a.orden - b.orden);
 
     raiz.forEach(item => {
-      item.items.sort((a, b) => a.orden - b.orden);
+      if (item.items?.length) {
+        item.items.sort((a, b) => a.orden - b.orden);
+      }
     });
 
     return raiz;
