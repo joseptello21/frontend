@@ -41,7 +41,7 @@
       </div>
 
       <div>
-        <h3>{{ dispositivos.length }}</h3>
+        <h3>{{ totalDevicesCount }}</h3>
         <p>Total dispositivos</p>
       </div>
     </article>
@@ -212,7 +212,7 @@
 
             <div>
               <h4>{{ dispositivo.name || 'Sin nombre' }}</h4>
-              <p>ID: {{ dispositivo.id }}</p>
+              <p>ID: {{ dispositivo.id || dispositivo.device_id }}</p>
             </div>
           </div>
 

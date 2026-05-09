@@ -136,9 +136,10 @@ export class Dispositivos implements OnInit, OnDestroy {
         const telemetry = this.telemetriaPorPanel.get(id);
         return {
           id: Number(id) || 0,
-          device_id: `iot-${id}`,
-          name: `Dispositivo IoT ${id}`,
-          location: 'Automático',
+          id_device: Number(id) || undefined,
+          device_id: `panel-solar-${id}`,
+          name: `Panel Solar ${id}`,
+          location: `Panel Solar`,
           status: telemetry?.lamp ? 'activo' : 'inactivo',
           mode: telemetry?.autoMode ? 'automatico' : 'manual',
           last_seen: telemetry?.timestamp ?? undefined,
@@ -147,8 +148,16 @@ export class Dispositivos implements OnInit, OnDestroy {
       });
   }
 
-  private getDispositivosParaMostrar(): Device[] {
+  private obtenerDispositivosCompletos(): Device[] {
     return [...this.dispositivos, ...this.getSyntheticDispositivos()];
+  }
+
+  get totalDevicesCount(): number {
+    return this.obtenerDispositivosCompletos().length;
+  }
+
+  private getDispositivosParaMostrar(): Device[] {
+    return this.obtenerDispositivosCompletos();
   }
 
   obtenerFechaTelemetria(dispositivo: Device): string {
@@ -213,6 +222,8 @@ export class Dispositivos implements OnInit, OnDestroy {
         dispositivo.location,
         dispositivo.status,
         dispositivo.mode,
+        dispositivo.device_id,
+        dispositivo.id_device?.toString(),
         dispositivo.id?.toString()
       ]
         .filter(Boolean)
@@ -460,22 +471,23 @@ export class Dispositivos implements OnInit, OnDestroy {
   }
 
   totalOnline(): number {
-    return this.dispositivos.filter(d => d.status === 'activo').length;
+    return this.obtenerDispositivosCompletos().filter(d => d.status === 'activo').length;
   }
 
   totalOffline(): number {
-    return this.dispositivos.filter(d =>
+    return this.obtenerDispositivosCompletos().filter(d =>
       d.status === 'inactivo' ||
       d.status === 'mantenimiento'
     ).length;
   }
 
   porcentajeOnline(): number {
-    if (this.dispositivos.length === 0) {
+    const dispositivos = this.obtenerDispositivosCompletos();
+    if (dispositivos.length === 0) {
       return 0;
     }
 
-    return Math.round((this.totalOnline() / this.dispositivos.length) * 100);
+    return Math.round((this.totalOnline() / dispositivos.length) * 100);
   }
 
   estaOnline(dispositivo: Device): boolean {
