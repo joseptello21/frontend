@@ -76,6 +76,11 @@
                 <span>{{ errorMessage }}</span>
             </div>  
 
+            <div class="register-link">
+                <span>¿No tienes cuenta?</span>
+                <a [routerLink]="['/register']">Regístrate</a>
+            </div>
+
             <button type="submit" [disabled]="loading">
                 <span *ngIf="!loading">Iniciar sesión</span>
 

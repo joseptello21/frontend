@@ -64,6 +64,16 @@ export class AuthService {
         );
     }
 
+    register(name: string, email: string, password: string): Observable<any> {
+        const payload = { nombre: name, email, password };
+        return this.http.post<any>(`${this.apiUrl}/auth/register`, payload).pipe(
+            catchError(error => {
+                console.error('Register request failed:', error);
+                return of({ success: false, message: 'No fue posible completar el registro.' });
+            })
+        );
+    }
+
     logout(): void {
         this.storageService.clear();
     }

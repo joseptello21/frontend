@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { LoginComponent } from './pages/login/login.component';
+import { RegisterComponent } from './pages/register/register.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { DataViewComponent } from './features/data-view/data-view.component';
 import { Dispositivos } from './features/dispositivos/dispositivos';
@@ -37,6 +38,7 @@ const loginGuard = () => {
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent, canActivate: [loginGuard] },
+  { path: 'register', component: RegisterComponent, canActivate: [loginGuard] },
   {
     path: '',
     component: MainLayoutComponent,
