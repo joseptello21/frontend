@@ -1,22 +1,22 @@
-<aside class="sidebar" [class.collapsed]="collapsed">
+<aside class="sidebar" [class.closed]="!open">
 
   <div class="sidebar-header">
     <div class="logo">
       <i class="fa-solid fa-sun"></i>
     </div>
 
-    <div class="brand" *ngIf="!collapsed">
+    <div class="brand" *ngIf="open">
       <h2>Solar UI</h2>
       <span>Panel de navegación</span>
     </div>
 
     <button type="button" class="sidebar-toggle" (click)="toggleSidebar()" aria-label="Toggle sidebar">
-      <i class="fa-solid" [ngClass]="collapsed ? 'fa-chevron-right' : 'fa-chevron-left'"></i>
+      <i class="fa-solid" [ngClass]="open ? 'fa-xmark' : 'fa-bars'"></i>
     </button>
   </div>
 
   <nav class="menu">
-    <div class="menu-title" *ngIf="!collapsed">Navegación</div>
+    <div class="menu-title" *ngIf="open">Navegación</div>
 
     <ng-container *ngFor="let item of menu">
       <div *ngIf="(item.items?.length ?? 0) > 0; else menuLink" class="menu-group">
@@ -41,3 +41,5 @@
   </nav>
 
 </aside>
+
+<div class="sidebar-backdrop" *ngIf="open" (click)="toggleSidebar()"></div>

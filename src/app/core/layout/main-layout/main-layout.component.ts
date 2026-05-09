@@ -12,9 +12,11 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
   standalone: true,
   imports: [CommonModule, RouterOutlet, TopbarComponent, SidebarComponent],
   templateUrl: './main-layout.component.html',
-  styleUrl: './main-layout.component.css'
+  styleUrls: ['./main-layout.component.css']
 })
 export class MainLayoutComponent {
+
+  sidebarOpen = true;
 
   constructor() {
     console.log('MainLayoutComponent constructor called');

@@ -1,7 +1,11 @@
 <div class="app-layout">
-  <app-sidebar></app-sidebar>
+  <app-sidebar [open]="sidebarOpen" (openChange)="sidebarOpen = $event"></app-sidebar>
 
-  <main class="main-content">
+  <main class="main-content" [class.sidebar-closed]="!sidebarOpen">
+    <button class="sidebar-open-button" *ngIf="!sidebarOpen" type="button" (click)="sidebarOpen = true" aria-label="Abrir menú">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
     <app-topbar></app-topbar>
 
     <section class="content-wrapper">

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -13,7 +13,8 @@ import { MenuItem, MenuService } from '../../services/menu.service';
 })
 export class SidebarComponent implements OnInit {
 
-  @Input() collapsed = false;
+  @Input() open = true;
+  @Output() openChange = new EventEmitter<boolean>();
 
   menu: MenuItem[] = [];
   openedItems: Set<number> = new Set<number>();
@@ -23,12 +24,14 @@ export class SidebarComponent implements OnInit {
   }
 
   toggleSidebar(): void {
-    this.collapsed = !this.collapsed;
+    this.open = !this.open;
+    this.openChange.emit(this.open);
   }
 
   closeSidebar(): void {
     if (window.innerWidth <= 900) {
-      this.collapsed = true;
+      this.open = false;
+      this.openChange.emit(this.open);
     }
   }
 

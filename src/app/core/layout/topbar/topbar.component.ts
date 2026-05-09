@@ -13,7 +13,7 @@ import { Usuario } from '../../models/usuario.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './topbar.component.html',
-  styleUrl: './topbar.component.css'
+  styleUrls: ['./topbar.component.css']
 })
 export class TopbarComponent {
 

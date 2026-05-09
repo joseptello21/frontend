@@ -7,14 +7,14 @@
   background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
   color: #e2e8f0;
   padding: 20px 18px;
-  transition: width 0.25s ease, transform 0.25s ease;
+  transition: transform 0.25s ease;
   overflow-y: auto;
   z-index: 1000;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
 }
 
-.sidebar.collapsed {
-  width: 96px;
+.sidebar.closed {
+  transform: translateX(-100%);
 }
 
 .sidebar-header {
@@ -148,28 +148,18 @@
   border-radius: 14px;
 }
 
-.sidebar.collapsed .brand,
-.sidebar.collapsed .menu-title {
+
+
+.sidebar-backdrop {
   display: none;
-}
-
-.sidebar.collapsed .menu-item a,
-.sidebar.collapsed .menu-group button {
-  justify-content: center;
-}
-
-.sidebar.collapsed .menu-item a i,
-.sidebar.collapsed .menu-group button i {
-  margin: 0;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.72);
+  z-index: 900;
 }
 
 @media (max-width: 900px) {
-  .sidebar {
-    transform: translateX(-100%);
-  }
-
-  .sidebar.collapsed {
-    transform: translateX(0);
-    width: 280px;
+  .sidebar-backdrop {
+    display: block;
   }
 }
