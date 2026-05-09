@@ -97,8 +97,17 @@ export class Dispositivos implements OnInit, OnDestroy {
     });
   }
 
+  private obtenerLlavesDispositivo(dispositivo: Device): string[] {
+    return [
+      dispositivo.id?.toString(),
+      dispositivo.device_id?.toString(),
+      dispositivo.id_device?.toString()
+    ].filter(Boolean) as string[];
+  }
+
   buscarTelemetriaDispositivo(dispositivo: Device): SolarTelemetry | undefined {
-    return this.telemetriaPorPanel.get(dispositivo.id?.toString() ?? '');
+    const llaves = this.obtenerLlavesDispositivo(dispositivo);
+    return llaves.map(llave => this.telemetriaPorPanel.get(llave)).find(Boolean);
   }
 
   obtenerFechaTelemetria(dispositivo: Device): string {
@@ -404,8 +413,8 @@ export class Dispositivos implements OnInit, OnDestroy {
     return modo || 'Automático';
   }
 
-  trackByDeviceId(index: number, dispositivo: Device): number {
-    return dispositivo.id;
+  trackByDeviceId(index: number, dispositivo: Device): string | number {
+    return dispositivo.id ?? dispositivo.id_device ?? dispositivo.device_id ?? 0;
   }
 
   totalOnline(): number {

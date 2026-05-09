@@ -88,8 +88,16 @@ export class Sensores implements OnInit, OnDestroy {
     });
   }
 
+  private obtenerLlavesSensor(sensor: Sensor): string[] {
+    return [
+      sensor.id_dispositivo?.toString(),
+      sensor.id_sensor?.toString()
+    ].filter(Boolean) as string[];
+  }
+
   buscarTelemetriaSensor(sensor: Sensor): SolarTelemetry | undefined {
-    return this.telemetriaPorDispositivo.get(sensor.id_dispositivo?.toString() ?? '');
+    const llaves = this.obtenerLlavesSensor(sensor);
+    return llaves.map(llave => this.telemetriaPorDispositivo.get(llave)).find(Boolean);
   }
 
   obtenerFechaTelemetria(sensor: Sensor): string {

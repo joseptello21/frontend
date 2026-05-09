@@ -89,8 +89,15 @@ export class Luminarias implements OnInit, OnDestroy {
     });
   }
 
+  private obtenerLlavesLuminaria(luminaria: Luminaria): string[] {
+    return [
+      luminaria.id_luminaria?.toString()
+    ].filter(Boolean) as string[];
+  }
+
   buscarTelemetriaLuminaria(luminaria: Luminaria): SolarTelemetry | undefined {
-    return this.telemetriaPorLuminaria.get(luminaria.id_luminaria?.toString() ?? '');
+    const llaves = this.obtenerLlavesLuminaria(luminaria);
+    return llaves.map(llave => this.telemetriaPorLuminaria.get(llave)).find(Boolean);
   }
 
   obtenerFechaTelemetria(luminaria: Luminaria): string {

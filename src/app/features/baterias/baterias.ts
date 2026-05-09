@@ -88,8 +88,15 @@ export class Baterias implements OnInit, OnDestroy {
     });
   }
 
+  private obtenerLlavesBateria(bateria: Bateria): string[] {
+    return [
+      bateria.id_bateria?.toString()
+    ].filter(Boolean) as string[];
+  }
+
   buscarTelemetriaBateria(bateria: Bateria): SolarTelemetry | undefined {
-    return this.telemetriaPorBateria.get(bateria.id_bateria?.toString() ?? '');
+    const llaves = this.obtenerLlavesBateria(bateria);
+    return llaves.map(llave => this.telemetriaPorBateria.get(llave)).find(Boolean);
   }
 
   obtenerFechaTelemetria(bateria: Bateria): string {
