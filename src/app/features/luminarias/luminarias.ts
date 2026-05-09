@@ -83,6 +83,7 @@ export class Luminarias implements OnInit, OnDestroy {
             this.telemetriaPorLuminaria.set(key, item);
           }
         });
+        this.luminariasFiltradas = this.getLuminariasParaMostrar();
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -100,6 +101,39 @@ export class Luminarias implements OnInit, OnDestroy {
   buscarTelemetriaLuminaria(luminaria: Luminaria): SolarTelemetry | undefined {
     const llaves = this.obtenerLlavesLuminaria(luminaria);
     return llaves.map(llave => this.telemetriaPorLuminaria.get(llave)).find(Boolean);
+  }
+
+  private getSyntheticLuminarias(): Luminaria[] {
+    if (!this.telemetrias?.length) {
+      return [];
+    }
+
+    const existingIds = new Set(
+      this.luminarias
+        .map(luminaria => luminaria.id_luminaria?.toString())
+        .filter(Boolean) as string[]
+    );
+
+    return this.telemetrias
+      .map(item => item.luminariaId)
+      .filter((id): id is number | string => id != null)
+      .map(id => id.toString())
+      .filter(id => !existingIds.has(id))
+      .map(id => {
+        const telemetry = this.telemetriaPorLuminaria.get(id);
+        return {
+          id_luminaria: Number(id) || 0,
+          tipo_luminaria: 'Luminaria IoT',
+          potencia_watts: telemetry?.energiaGenerada ?? 0,
+          estado: telemetry?.lamp ? 'activo' : 'inactivo',
+          id_zona: 1,
+          isSynthetic: true,
+        } as Luminaria & { isSynthetic: boolean };
+      });
+  }
+
+  private getLuminariasParaMostrar(): Luminaria[] {
+    return [...this.luminarias, ...this.getSyntheticLuminarias()];
   }
 
   obtenerFechaTelemetria(luminaria: Luminaria): string {
@@ -134,7 +168,7 @@ export class Luminarias implements OnInit, OnDestroy {
     ).subscribe({
       next: (luminarias) => {
         this.luminarias = luminarias;
-        this.luminariasFiltradas = [...luminarias];
+        this.luminariasFiltradas = this.getLuminariasParaMostrar();
       },
       error: (error) => {
         console.error('Error loading luminarias:', error);
@@ -156,7 +190,7 @@ export class Luminarias implements OnInit, OnDestroy {
     ).subscribe({
       next: (luminarias) => {
         this.luminarias = luminarias;
-        this.luminariasFiltradas = [...luminarias];
+        this.luminariasFiltradas = this.getLuminariasParaMostrar();
         this.cargarTelemetria();
       },
       error: (error) => {
@@ -169,7 +203,7 @@ export class Luminarias implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     this.searchTerm = input.value.toLowerCase().trim();
 
-    this.luminariasFiltradas = this.luminarias.filter(luminaria =>
+    this.luminariasFiltradas = this.getLuminariasParaMostrar().filter(luminaria =>
       luminaria.tipo_luminaria?.toLowerCase().includes(this.searchTerm) ||
       luminaria.estado?.toLowerCase().includes(this.searchTerm) ||
       luminaria.id_zona?.toString().includes(this.searchTerm)

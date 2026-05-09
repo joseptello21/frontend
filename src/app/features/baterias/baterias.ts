@@ -82,6 +82,7 @@ export class Baterias implements OnInit, OnDestroy {
             this.telemetriaPorBateria.set(key, item);
           }
         });
+        this.bateriasFiltradas = this.getBateriasParaMostrar();
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -99,6 +100,39 @@ export class Baterias implements OnInit, OnDestroy {
   buscarTelemetriaBateria(bateria: Bateria): SolarTelemetry | undefined {
     const llaves = this.obtenerLlavesBateria(bateria);
     return llaves.map(llave => this.telemetriaPorBateria.get(llave)).find(Boolean);
+  }
+
+  private getSyntheticBaterias(): Bateria[] {
+    if (!this.telemetrias?.length) {
+      return [];
+    }
+
+    const existingIds = new Set(
+      this.baterias
+        .map(bateria => bateria.id_bateria?.toString())
+        .filter(Boolean) as string[]
+    );
+
+    return this.telemetrias
+      .map(item => item.batteryId)
+      .filter((id): id is number | string => id != null)
+      .map(id => id.toString())
+      .filter(id => !existingIds.has(id))
+      .map(id => {
+        const telemetry = this.telemetriaPorBateria.get(id);
+        return {
+          id_bateria: Number(id) || 0,
+          capacidad_ah: 0,
+          voltaje: telemetry?.batteryVoltage ?? 0,
+          estado: telemetry?.lamp ? 'activo' : 'inactivo',
+          id_panel: telemetry?.panelId ?? undefined,
+          isSynthetic: true,
+        } as Bateria & { isSynthetic: boolean };
+      });
+  }
+
+  private getBateriasParaMostrar(): Bateria[] {
+    return [...this.baterias, ...this.getSyntheticBaterias()];
   }
 
   obtenerFechaTelemetria(bateria: Bateria): string {
@@ -133,7 +167,7 @@ export class Baterias implements OnInit, OnDestroy {
     ).subscribe({
       next: (baterias) => {
         this.baterias = baterias;
-        this.bateriasFiltradas = [...baterias];
+        this.bateriasFiltradas = this.getBateriasParaMostrar();
       },
       error: (error) => {
         console.error('Error loading baterias:', error);
@@ -155,7 +189,7 @@ export class Baterias implements OnInit, OnDestroy {
     ).subscribe({
       next: (baterias) => {
         this.baterias = baterias;
-        this.bateriasFiltradas = [...baterias];
+        this.bateriasFiltradas = this.getBateriasParaMostrar();
         this.cargarTelemetria();
       },
       error: (error) => {
@@ -168,7 +202,7 @@ export class Baterias implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     this.searchTerm = input.value.toLowerCase().trim();
 
-    this.bateriasFiltradas = this.baterias.filter(bateria =>
+    this.bateriasFiltradas = this.getBateriasParaMostrar().filter(bateria =>
       bateria.capacidad_ah?.toString().includes(this.searchTerm) ||
       bateria.voltaje?.toString().includes(this.searchTerm) ||
       bateria.estado?.toLowerCase().includes(this.searchTerm) ||

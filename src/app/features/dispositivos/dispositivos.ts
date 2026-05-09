@@ -91,7 +91,7 @@ export class Dispositivos implements OnInit, OnDestroy {
             this.telemetriaPorPanel.set(key, item);
           }
         });
-        this.cdr.markForCheck();
+        this.aplicarFiltros();
       },
       error: (error) => {
         console.error('❌ Error cargando telemetría de dispositivos:', error);
@@ -110,6 +110,45 @@ export class Dispositivos implements OnInit, OnDestroy {
   buscarTelemetriaDispositivo(dispositivo: Device): SolarTelemetry | undefined {
     const llaves = this.obtenerLlavesDispositivo(dispositivo);
     return llaves.map(llave => this.telemetriaPorPanel.get(llave)).find(Boolean);
+  }
+
+  private obtenerIdentificadorDispositivo(dispositivo: Device): string | undefined {
+    return dispositivo.id?.toString() || dispositivo.device_id?.toString() || dispositivo.id_device?.toString();
+  }
+
+  private getSyntheticDispositivos(): Device[] {
+    if (!this.telemetrias?.length) {
+      return [];
+    }
+
+    const existingIds = new Set(
+      this.dispositivos
+        .map(device => this.obtenerIdentificadorDispositivo(device))
+        .filter(Boolean) as string[]
+    );
+
+    return this.telemetrias
+      .map(telemetria => telemetria.panelId)
+      .filter((id): id is number | string => id != null)
+      .map(id => id.toString())
+      .filter(id => !existingIds.has(id))
+      .map(id => {
+        const telemetry = this.telemetriaPorPanel.get(id);
+        return {
+          id: Number(id) || 0,
+          device_id: `iot-${id}`,
+          name: `Dispositivo IoT ${id}`,
+          location: 'Automático',
+          status: telemetry?.lamp ? 'activo' : 'inactivo',
+          mode: telemetry?.autoMode ? 'automatico' : 'manual',
+          last_seen: telemetry?.timestamp ?? undefined,
+          isSynthetic: true,
+        } as Device & { isSynthetic: boolean };
+      });
+  }
+
+  private getDispositivosParaMostrar(): Device[] {
+    return [...this.dispositivos, ...this.getSyntheticDispositivos()];
   }
 
   obtenerFechaTelemetria(dispositivo: Device): string {
@@ -166,14 +205,15 @@ export class Dispositivos implements OnInit, OnDestroy {
 
   aplicarFiltros(): void {
     const termino = this.searchTerm.toLowerCase().trim();
+    const dispositivos = this.getDispositivosParaMostrar();
 
-    this.dispositivosFiltrados = this.dispositivos.filter(dispositivo => {
+    this.dispositivosFiltrados = dispositivos.filter(dispositivo => {
       const coincideBusqueda = !termino || [
         dispositivo.name,
         dispositivo.location,
         dispositivo.status,
         dispositivo.mode,
-        dispositivo.id.toString()
+        dispositivo.id?.toString()
       ]
         .filter(Boolean)
         .join(' ')

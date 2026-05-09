@@ -82,6 +82,7 @@ export class Sensores implements OnInit, OnDestroy {
             this.telemetriaPorDispositivo.set(key, item);
           }
         });
+        this.sensoresFiltrados = this.getSensoresParaMostrar();
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -100,6 +101,36 @@ export class Sensores implements OnInit, OnDestroy {
   buscarTelemetriaSensor(sensor: Sensor): SolarTelemetry | undefined {
     const llaves = this.obtenerLlavesSensor(sensor);
     return llaves.map(llave => this.telemetriaPorDispositivo.get(llave)).find(Boolean);
+  }
+
+  private getSyntheticSensores(): Sensor[] {
+    if (!this.telemetrias?.length) {
+      return [];
+    }
+
+    const existingIds = new Set(
+      this.sensores
+        .map(sensor => sensor.id_dispositivo?.toString())
+        .filter(Boolean) as string[]
+    );
+
+    return this.telemetrias
+      .map(item => item.panelId)
+      .filter((id): id is number | string => id != null)
+      .map(id => id.toString())
+      .filter(id => !existingIds.has(id))
+      .map(id => ({
+        id_sensor: Number(id) || 0,
+        tipo_sensor: 'Fotoresistor IoT',
+        descripcion: `Sensor del dispositivo ${id}`,
+        unidad_medida: 'lux',
+        id_dispositivo: Number(id) || 0,
+        isSynthetic: true,
+      } as Sensor & { isSynthetic: boolean }));
+  }
+
+  private getSensoresParaMostrar(): Sensor[] {
+    return [...this.sensores, ...this.getSyntheticSensores()];
   }
 
   obtenerFechaTelemetria(sensor: Sensor): string {
@@ -134,7 +165,7 @@ export class Sensores implements OnInit, OnDestroy {
     ).subscribe({
       next: (sensores) => {
         this.sensores = sensores;
-        this.sensoresFiltrados = [...sensores];
+        this.sensoresFiltrados = this.getSensoresParaMostrar();
       },
       error: (error) => {
         console.error('Error loading sensores:', error);
@@ -156,7 +187,7 @@ export class Sensores implements OnInit, OnDestroy {
     ).subscribe({
       next: (sensores) => {
         this.sensores = sensores;
-        this.sensoresFiltrados = [...sensores];
+        this.sensoresFiltrados = this.getSensoresParaMostrar();
         this.cargarTelemetria();
       },
       error: (error) => {
@@ -169,7 +200,7 @@ export class Sensores implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     this.searchTerm = input.value.toLowerCase().trim();
 
-    this.sensoresFiltrados = this.sensores.filter(sensor =>
+    this.sensoresFiltrados = this.getSensoresParaMostrar().filter(sensor =>
       sensor.tipo_sensor?.toLowerCase().includes(this.searchTerm) ||
       sensor.descripcion?.toLowerCase().includes(this.searchTerm) ||
       sensor.unidad_medida?.toLowerCase().includes(this.searchTerm) ||
