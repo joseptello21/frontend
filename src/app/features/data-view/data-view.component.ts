@@ -292,6 +292,68 @@ export class DataViewComponent implements OnInit {
     }
   }
 
+  toggleManualLamp(): void {
+    if (!this.latestTelemetry) {
+      return;
+    }
+
+    const updatedTelemetry: SolarTelemetry = {
+      ...this.latestTelemetry,
+      lamp: !this.latestTelemetry.lamp,
+      manualStatus: true,
+      autoMode: false,
+      timestamp: new Date().toISOString()
+    };
+
+    this.latestTelemetry = updatedTelemetry;
+    this.telemetrias = [
+      updatedTelemetry,
+      ...this.telemetrias.filter(item => item.id !== updatedTelemetry.id)
+    ];
+    this.updateDeviceViewsFromTelemetry(updatedTelemetry);
+  }
+
+  resetAutomaticControl(): void {
+    if (!this.latestTelemetry) {
+      return;
+    }
+
+    const automaticTelemetry: SolarTelemetry = {
+      ...this.latestTelemetry,
+      manualStatus: false,
+      autoMode: true,
+      timestamp: new Date().toISOString()
+    };
+
+    this.latestTelemetry = automaticTelemetry;
+    this.telemetrias = [
+      automaticTelemetry,
+      ...this.telemetrias.filter(item => item.id !== automaticTelemetry.id)
+    ];
+    this.updateDeviceViewsFromTelemetry(automaticTelemetry);
+    this.loadTelemetryUpdate();
+  }
+
+  private loadTelemetryUpdate(): void {
+    this.telemetryService.getAll().subscribe({
+      next: (data: any) => {
+        const telemetrias = this.normalizeArrayResponse<any>(data, ['telemetrias', 'telemetria', 'items', 'data']);
+        if (telemetrias.length > 0) {
+          this.telemetrias = telemetrias
+            .map((item: any) => this.mapTelemetryToDisplay(item))
+            .sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+          this.latestTelemetry = this.getLatestTelemetryFromList(this.telemetrias);
+          if (this.latestTelemetry) {
+            this.updateDeviceViewsFromTelemetry(this.latestTelemetry);
+          }
+        }
+      },
+      error: () => {
+        // Mantener el estado manual si falla la recarga del backend
+      }
+    });
+  }
+
   formatTimestamp(timestamp: any): string {
     if (!timestamp || timestamp === 'N/A') {
       return 'Nunca';

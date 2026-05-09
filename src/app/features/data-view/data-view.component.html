@@ -42,6 +42,14 @@
         <p>ID: {{ latestTelemetry?.luminariaId || 'N/A' }}</p>
         <p>Estado: {{ getLuminariaState() }}</p>
         <p>Manual: {{ latestTelemetry?.manualStatus ? 'Sí' : 'No' }}</p>
+        <div class="control-buttons">
+          <button class="btn btn-secondary" type="button" (click)="toggleManualLamp()" [disabled]="!latestTelemetry">
+            {{ latestTelemetry?.lamp ? 'Apagar lámpara' : 'Encender lámpara' }}
+          </button>
+          <button class="btn btn-light" type="button" (click)="resetAutomaticControl()" [disabled]="!latestTelemetry || !latestTelemetry?.manualStatus">
+            Volver a automático
+          </button>
+        </div>
       </div>
     </div>
   </section>

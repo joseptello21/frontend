@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/app.css"],
-  "sourcesContent": ["* {\r\n  margin: 0;\r\n  padding: 0;\r\n  box-sizing: border-box;\r\n}\r\n\r\nbody {\r\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;\r\n  background: #f4f7fb;\r\n}\r\n\r\n:root {\r\n  --primary: #2563eb;\r\n  --secondary: #667eea;\r\n  --danger: #ef4444;\r\n  --success: #10b981;\r\n  --warning: #f59e0b;\r\n}\r\n"],
-  "mappings": ";AAAA;AACE,UAAQ;AACR,WAAS;AACT,cAAY;AACd;AAEA;AACE;AAAA,IAAa,aAAa;AAAA,IAAE,kBAAkB;AAAA,IAAE,UAAU;AAAA,IAAE,MAAM;AAAA,IAAE,MAAM;AAAA,IAAE,MAAM;AAAA,IAAE,SAAS;AAAA,IAAE;AAC/F,cAAY;AACd;AAEA;AACE,aAAW;AACX,eAAa;AACb,YAAU;AACV,aAAW;AACX,aAAW;AACb;",
-  "names": []
-}

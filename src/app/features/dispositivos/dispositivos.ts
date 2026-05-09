@@ -13,6 +13,7 @@ import { finalize } from 'rxjs';
 import { Device } from '../../core/models/device.model';
 import { DeviceService } from '../../core/services/device.service';
 import { TelemetryService, SolarTelemetry } from '../../core/services/telemetry.service';
+import { CommandService } from '../../core/services/command.service';
 
 type ViewMode = 'grid' | 'table';
 
@@ -30,6 +31,7 @@ export class Dispositivos implements OnInit, OnDestroy {
   dispositivosFiltrados: Device[] = [];
   telemetrias: SolarTelemetry[] = [];
   telemetriaPorPanel: Map<string, SolarTelemetry> = new Map();
+  manualTelemetryOverrides: Map<string, SolarTelemetry> = new Map();
 
   loading = false;
   refreshing = false;
@@ -54,6 +56,7 @@ export class Dispositivos implements OnInit, OnDestroy {
   constructor(
     private deviceService: DeviceService,
     private telemetryService: TelemetryService,
+    private commandService: CommandService,
     private cdr: ChangeDetectorRef,
     private location: Location,
     private router: Router
@@ -83,14 +86,21 @@ export class Dispositivos implements OnInit, OnDestroy {
       next: (telemetrias) => {
         console.log('📊 Dispositivos - Telemetria recibida:', telemetrias);
         this.telemetrias = telemetrias || [];
-        this.telemetriaPorPanel.clear();
+
+        const fetchedMap = new Map<string, SolarTelemetry>();
         this.telemetrias.forEach((item) => {
           const key = item.panelId?.toString();
           if (key) {
             console.log(`🔗 Mapping panelId ${key}:`, item);
-            this.telemetriaPorPanel.set(key, item);
+            fetchedMap.set(key, item);
           }
         });
+
+        this.manualTelemetryOverrides.forEach((override, panelId) => {
+          fetchedMap.set(panelId, override);
+        });
+
+        this.telemetriaPorPanel = fetchedMap;
         this.aplicarFiltros();
       },
       error: (error) => {
@@ -150,6 +160,123 @@ export class Dispositivos implements OnInit, OnDestroy {
 
   private obtenerDispositivosCompletos(): Device[] {
     return [...this.dispositivos, ...this.getSyntheticDispositivos()];
+  }
+
+  isManualMode(dispositivo: Device): boolean {
+    return this.normalizarTexto(dispositivo.mode) === 'manual';
+  }
+
+  setDeviceMode(dispositivo: Device, modo: 'manual' | 'automatico'): void {
+    dispositivo.mode = modo;
+
+    const deviceId = this.obtenerIdentificadorDispositivo(dispositivo);
+    if (deviceId) {
+      this.commandService.setDeviceMode(Number(deviceId), modo).subscribe({
+        next: (response) => {
+          console.log('✅ Comando de modo enviado:', response);
+          this.successMessage = `Modo cambiado a ${modo} exitosamente`;
+          setTimeout(() => this.successMessage = '', 3000);
+
+          // Actualizar telemetría local
+          const telemetry = this.buscarTelemetriaDispositivo(dispositivo);
+          if (telemetry) {
+            const updatedTelemetry: SolarTelemetry = {
+              ...telemetry,
+              manualStatus: modo === 'manual',
+              autoMode: modo === 'automatico',
+              timestamp: new Date().toISOString()
+            };
+            this.updateTelemetryForDevice(dispositivo, updatedTelemetry);
+
+            const key = this.obtenerIdentificadorDispositivo(dispositivo);
+            if (key) {
+              if (modo === 'manual') {
+                this.manualTelemetryOverrides.set(key, updatedTelemetry);
+              } else {
+                this.manualTelemetryOverrides.delete(key);
+              }
+            }
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error enviando comando de modo:', error);
+          this.errorMessage = 'Error al cambiar modo del dispositivo';
+          setTimeout(() => this.errorMessage = '', 3000);
+          // Revertir cambio en caso de error
+          dispositivo.mode = modo === 'manual' ? 'automatico' : 'manual';
+        }
+      });
+    }
+
+    this.aplicarFiltros();
+    this.cdr.markForCheck();
+  }
+
+  toggleDeviceLamp(dispositivo: Device): void {
+    if (!this.isManualMode(dispositivo)) {
+      this.setDeviceMode(dispositivo, 'manual');
+      return;
+    }
+
+    const telemetry = this.buscarTelemetriaDispositivo(dispositivo);
+    const newState = !(telemetry?.lamp ?? false);
+
+    const deviceId = this.obtenerIdentificadorDispositivo(dispositivo);
+    if (deviceId) {
+      this.commandService.setManualLamp(Number(deviceId), newState).subscribe({
+        next: (response) => {
+          console.log('✅ Comando de lámpara enviado:', response);
+
+          // Actualizar telemetría local inmediatamente
+          const updatedTelemetry: SolarTelemetry = {
+            ...telemetry,
+            lamp: newState,
+            manualStatus: true,
+            autoMode: false,
+            timestamp: new Date().toISOString()
+          };
+
+          this.updateTelemetryForDevice(dispositivo, updatedTelemetry);
+
+          const key = this.obtenerIdentificadorDispositivo(dispositivo);
+          if (key) {
+            this.manualTelemetryOverrides.set(key, updatedTelemetry);
+          }
+
+          dispositivo.status = newState ? 'activo' : 'inactivo';
+
+          this.successMessage = `Lámpara ${newState ? 'encendida' : 'apagada'} exitosamente`;
+          setTimeout(() => this.successMessage = '', 3000);
+        },
+        error: (error) => {
+          console.error('❌ Error enviando comando de lámpara:', error);
+          this.errorMessage = 'Error al controlar la lámpara';
+          setTimeout(() => this.errorMessage = '', 3000);
+        }
+      });
+    }
+
+    this.cdr.markForCheck();
+  }
+
+  getManualLampLabel(dispositivo: Device): string {
+    const telemetry = this.buscarTelemetriaDispositivo(dispositivo);
+    if (!telemetry) {
+      return 'Control manual';
+    }
+    return telemetry.lamp ? 'Apagar lámpara' : 'Encender lámpara';
+  }
+
+  private updateTelemetryForDevice(dispositivo: Device, telemetry: SolarTelemetry): void {
+    const key = this.obtenerIdentificadorDispositivo(dispositivo);
+    if (key) {
+      this.telemetriaPorPanel.set(key, telemetry);
+    }
+
+    this.telemetrias = [
+      telemetry,
+      ...this.telemetrias.filter(item => item.id !== telemetry.id)
+    ];
   }
 
   get totalDevicesCount(): number {
