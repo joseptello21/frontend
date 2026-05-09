@@ -75,14 +75,41 @@ export class Luminarias implements OnInit, OnDestroy {
       next: (telemetrias) => {
         console.log('📊 Luminarias - Telemetria recibida:', telemetrias);
         this.telemetrias = telemetrias || [];
+
+        // Agrupar telemetrías por luminariaId y tomar la más reciente
         this.telemetriaPorLuminaria.clear();
+        const groupedByLuminaria = new Map<string, SolarTelemetry[]>();
+
         this.telemetrias.forEach((item) => {
           const key = item.luminariaId?.toString();
           if (key) {
-            console.log(`🔗 Mapping luminariaId ${key}:`, item);
-            this.telemetriaPorLuminaria.set(key, item);
+            if (!groupedByLuminaria.has(key)) {
+              groupedByLuminaria.set(key, []);
+            }
+            groupedByLuminaria.get(key)!.push(item);
           }
         });
+
+        // Para cada luminaria, seleccionar la telemetría más reciente (última hora)
+        groupedByLuminaria.forEach((telemetries, luminariaId) => {
+          const sortedTelemetries = telemetries.sort((a, b) => {
+            const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+            const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+            return timeB - timeA; // Más reciente primero
+          });
+
+          // Solo tomar telemetrías de la última hora
+          const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+          const recentTelemetries = sortedTelemetries.filter(t =>
+            t.timestamp && new Date(t.timestamp) > oneHourAgo
+          );
+
+          if (recentTelemetries.length > 0) {
+            console.log(`🔗 Mapping luminariaId ${luminariaId} with latest telemetry:`, recentTelemetries[0]);
+            this.telemetriaPorLuminaria.set(luminariaId, recentTelemetries[0]);
+          }
+        });
+
         this.luminariasFiltradas = this.getLuminariasParaMostrar();
         this.cdr.markForCheck();
       },

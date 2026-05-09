@@ -74,14 +74,41 @@ export class Sensores implements OnInit, OnDestroy {
       next: (telemetrias) => {
         console.log('📊 Sensores - Telemetria recibida:', telemetrias);
         this.telemetrias = telemetrias || [];
+
+        // Agrupar telemetrías por panelId y tomar la más reciente
         this.telemetriaPorDispositivo.clear();
+        const groupedByPanel = new Map<string, SolarTelemetry[]>();
+
         this.telemetrias.forEach((item) => {
           const key = item.panelId?.toString();
           if (key) {
-            console.log(`🔗 Mapping panelId ${key}:`, item);
-            this.telemetriaPorDispositivo.set(key, item);
+            if (!groupedByPanel.has(key)) {
+              groupedByPanel.set(key, []);
+            }
+            groupedByPanel.get(key)!.push(item);
           }
         });
+
+        // Para cada panel/dispositivo, seleccionar la telemetría más reciente (última hora)
+        groupedByPanel.forEach((telemetries, panelId) => {
+          const sortedTelemetries = telemetries.sort((a, b) => {
+            const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+            const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+            return timeB - timeA; // Más reciente primero
+          });
+
+          // Solo tomar telemetrías de la última hora
+          const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+          const recentTelemetries = sortedTelemetries.filter(t =>
+            t.timestamp && new Date(t.timestamp) > oneHourAgo
+          );
+
+          if (recentTelemetries.length > 0) {
+            console.log(`🔗 Mapping panelId ${panelId} with latest telemetry:`, recentTelemetries[0]);
+            this.telemetriaPorDispositivo.set(panelId, recentTelemetries[0]);
+          }
+        });
+
         this.sensoresFiltrados = this.getSensoresParaMostrar();
         this.cdr.markForCheck();
       },

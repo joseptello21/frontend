@@ -74,14 +74,41 @@ export class Baterias implements OnInit, OnDestroy {
       next: (telemetrias) => {
         console.log('📊 Baterias - Telemetria recibida:', telemetrias);
         this.telemetrias = telemetrias || [];
+
+        // Agrupar telemetrías por batteryId y tomar la más reciente
         this.telemetriaPorBateria.clear();
+        const groupedByBateria = new Map<string, SolarTelemetry[]>();
+
         this.telemetrias.forEach((item) => {
           const key = item.batteryId?.toString();
           if (key) {
-            console.log(`🔗 Mapping batteryId ${key}:`, item);
-            this.telemetriaPorBateria.set(key, item);
+            if (!groupedByBateria.has(key)) {
+              groupedByBateria.set(key, []);
+            }
+            groupedByBateria.get(key)!.push(item);
           }
         });
+
+        // Para cada batería, seleccionar la telemetría más reciente (última hora)
+        groupedByBateria.forEach((telemetries, batteryId) => {
+          const sortedTelemetries = telemetries.sort((a, b) => {
+            const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+            const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+            return timeB - timeA; // Más reciente primero
+          });
+
+          // Solo tomar telemetrías de la última hora
+          const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+          const recentTelemetries = sortedTelemetries.filter(t =>
+            t.timestamp && new Date(t.timestamp) > oneHourAgo
+          );
+
+          if (recentTelemetries.length > 0) {
+            console.log(`🔗 Mapping batteryId ${batteryId} with latest telemetry:`, recentTelemetries[0]);
+            this.telemetriaPorBateria.set(batteryId, recentTelemetries[0]);
+          }
+        });
+
         this.bateriasFiltradas = this.getBateriasParaMostrar();
         this.cdr.markForCheck();
       },
