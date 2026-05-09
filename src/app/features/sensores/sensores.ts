@@ -72,18 +72,20 @@ export class Sensores implements OnInit, OnDestroy {
       finalize(() => this.cdr.markForCheck())
     ).subscribe({
       next: (telemetrias) => {
+        console.log('📊 Sensores - Telemetria recibida:', telemetrias);
         this.telemetrias = telemetrias || [];
         this.telemetriaPorDispositivo.clear();
         this.telemetrias.forEach((item) => {
           const key = item.panelId?.toString();
           if (key) {
+            console.log(`🔗 Mapping panelId ${key}:`, item);
             this.telemetriaPorDispositivo.set(key, item);
           }
         });
         this.cdr.markForCheck();
       },
       error: (error) => {
-        console.error('Error cargando telemetría de sensores:', error);
+        console.error('❌ Error cargando telemetría de sensores:', error);
       }
     });
   }

@@ -81,18 +81,20 @@ export class Dispositivos implements OnInit, OnDestroy {
       finalize(() => this.cdr.markForCheck())
     ).subscribe({
       next: (telemetrias) => {
+        console.log('📊 Dispositivos - Telemetria recibida:', telemetrias);
         this.telemetrias = telemetrias || [];
         this.telemetriaPorPanel.clear();
         this.telemetrias.forEach((item) => {
           const key = item.panelId?.toString();
           if (key) {
+            console.log(`🔗 Mapping panelId ${key}:`, item);
             this.telemetriaPorPanel.set(key, item);
           }
         });
         this.cdr.markForCheck();
       },
       error: (error) => {
-        console.error('Error cargando telemetría de dispositivos:', error);
+        console.error('❌ Error cargando telemetría de dispositivos:', error);
       }
     });
   }

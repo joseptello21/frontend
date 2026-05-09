@@ -32,12 +32,17 @@ export class TelemetryService {
   }
 
   getAll(): Observable<SolarTelemetry[]> {
-    return this.http.get<any>(this.apiUrl, { headers: this.getHeaders() }).pipe(
+    console.log('📡 Fetching telemetry from:', this.apiUrl);
+    return this.http.get<any>(this.apiUrl).pipe(
       map(response => {
+        console.log('✅ Telemetry response:', response);
         if (Array.isArray(response)) {
+          console.log('📦 Response is array, returning:', response);
           return response;
         }
-        return response.data || response.telemetrias || response.items || response || [];
+        const data = response.data || response.telemetrias || response.items || [];
+        console.log('📦 Extracted data:', data);
+        return data;
       })
     );
   }

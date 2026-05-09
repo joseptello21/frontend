@@ -72,18 +72,20 @@ export class Baterias implements OnInit, OnDestroy {
       finalize(() => this.cdr.markForCheck())
     ).subscribe({
       next: (telemetrias) => {
+        console.log('📊 Baterias - Telemetria recibida:', telemetrias);
         this.telemetrias = telemetrias || [];
         this.telemetriaPorBateria.clear();
         this.telemetrias.forEach((item) => {
           const key = item.batteryId?.toString();
           if (key) {
+            console.log(`🔗 Mapping batteryId ${key}:`, item);
             this.telemetriaPorBateria.set(key, item);
           }
         });
         this.cdr.markForCheck();
       },
       error: (error) => {
-        console.error('Error cargando telemetría de baterías:', error);
+        console.error('❌ Error cargando telemetría de baterías:', error);
       }
     });
   }

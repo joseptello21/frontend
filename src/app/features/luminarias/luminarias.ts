@@ -73,18 +73,20 @@ export class Luminarias implements OnInit, OnDestroy {
       finalize(() => this.cdr.markForCheck())
     ).subscribe({
       next: (telemetrias) => {
+        console.log('📊 Luminarias - Telemetria recibida:', telemetrias);
         this.telemetrias = telemetrias || [];
         this.telemetriaPorLuminaria.clear();
         this.telemetrias.forEach((item) => {
           const key = item.luminariaId?.toString();
           if (key) {
+            console.log(`🔗 Mapping luminariaId ${key}:`, item);
             this.telemetriaPorLuminaria.set(key, item);
           }
         });
         this.cdr.markForCheck();
       },
       error: (error) => {
-        console.error('Error cargando telemetría de luminarias:', error);
+        console.error('❌ Error cargando telemetría de luminarias:', error);
       }
     });
   }
