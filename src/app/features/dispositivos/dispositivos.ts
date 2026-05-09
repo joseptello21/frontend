@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef
 } from '@angular/core';
@@ -11,6 +12,7 @@ import { finalize } from 'rxjs';
 
 import { Device } from '../../core/models/device.model';
 import { DeviceService } from '../../core/services/device.service';
+import { TelemetryService, SolarTelemetry } from '../../core/services/telemetry.service';
 
 type ViewMode = 'grid' | 'table';
 
@@ -22,10 +24,12 @@ type ViewMode = 'grid' | 'table';
   styleUrl: './dispositivos.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Dispositivos implements OnInit {
+export class Dispositivos implements OnInit, OnDestroy {
 
   dispositivos: Device[] = [];
   dispositivosFiltrados: Device[] = [];
+  telemetrias: SolarTelemetry[] = [];
+  telemetriaPorPanel: Map<string, SolarTelemetry> = new Map();
 
   loading = false;
   refreshing = false;
@@ -45,9 +49,11 @@ export class Dispositivos implements OnInit {
   dispositivoSeleccionado: Device | null = null;
 
   dispositivoForm: Partial<Device> = this.obtenerFormularioInicial();
+  private updateIntervalId: any;
 
   constructor(
     private deviceService: DeviceService,
+    private telemetryService: TelemetryService,
     private cdr: ChangeDetectorRef,
     private location: Location,
     private router: Router
@@ -55,6 +61,66 @@ export class Dispositivos implements OnInit {
 
   ngOnInit(): void {
     this.cargarDispositivos(true);
+    this.cargarTelemetria();
+    
+    // Actualizar telemetría cada 5 segundos
+    this.updateIntervalId = setInterval(() => {
+      this.cargarTelemetria();
+      this.cdr.markForCheck();
+    }, 5000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.updateIntervalId) {
+      clearInterval(this.updateIntervalId);
+    }
+  }
+
+  cargarTelemetria(): void {
+    this.telemetryService.getAll().pipe(
+      finalize(() => this.cdr.markForCheck())
+    ).subscribe({
+      next: (telemetrias) => {
+        this.telemetrias = telemetrias || [];
+        this.telemetriaPorPanel.clear();
+        this.telemetrias.forEach((item) => {
+          const key = item.panelId?.toString();
+          if (key) {
+            this.telemetriaPorPanel.set(key, item);
+          }
+        });
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error cargando telemetría de dispositivos:', error);
+      }
+    });
+  }
+
+  buscarTelemetriaDispositivo(dispositivo: Device): SolarTelemetry | undefined {
+    return this.telemetriaPorPanel.get(dispositivo.id?.toString() ?? '');
+  }
+
+  obtenerFechaTelemetria(dispositivo: Device): string {
+    const telemetry = this.buscarTelemetriaDispositivo(dispositivo);
+    return telemetry?.timestamp ? this.formatTimestamp(telemetry.timestamp) : 'N/A';
+  }
+
+  formatTimestamp(timestamp: string | undefined): string {
+    if (!timestamp) {
+      return 'N/A';
+    }
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
   }
 
   cargarDispositivos(primeraCarga = false): void {

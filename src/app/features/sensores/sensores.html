@@ -141,6 +141,8 @@
               <th>Descripción</th>
               <th>Unidad</th>
               <th>Dispositivo</th>
+              <th>LDR</th>
+              <th>Última lect.</th>
               <th class="text-right">Acciones</th>
             </tr>
           </thead>
@@ -151,6 +153,8 @@
               <td>{{ sensor.descripcion || 'N/A' }}</td>
               <td>{{ sensor.unidad_medida || 'N/A' }}</td>
               <td>{{ sensor.id_dispositivo || 'N/A' }}</td>
+              <td>{{ buscarTelemetriaSensor(sensor)?.ldr ?? 'N/A' }}</td>
+              <td>{{ obtenerFechaTelemetria(sensor) }}</td>
               <td class="actions">
                 <button class="action-button edit" type="button" title="Editar" (click)="abrirModalEditar(sensor)">
                   <i class="fa-solid fa-pen"></i>
@@ -161,7 +165,7 @@
               </td>
             </tr>
             <tr *ngIf="sensoresFiltrados.length === 0">
-              <td colspan="6" class="empty-state">
+              <td colspan="8" class="empty-state">
                 <i class="fa-solid fa-gauge"></i>
                 <p>No hay sensores registrados</p>
               </td>

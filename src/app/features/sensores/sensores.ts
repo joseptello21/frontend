@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef
 } from '@angular/core';
@@ -10,6 +11,7 @@ import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { SensorService, Sensor, CreateSensor } from '../../core/services/sensor.service';
+import { TelemetryService, SolarTelemetry } from '../../core/services/telemetry.service';
 
 @Component({
   selector: 'app-sensores',
@@ -19,10 +21,12 @@ import { SensorService, Sensor, CreateSensor } from '../../core/services/sensor.
   styleUrl: './sensores.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Sensores implements OnInit {
+export class Sensores implements OnInit, OnDestroy {
 
   sensores: Sensor[] = [];
   sensoresFiltrados: Sensor[] = [];
+  telemetrias: SolarTelemetry[] = [];
+  telemetriaPorDispositivo: Map<string, SolarTelemetry> = new Map();
 
   loading = false;
   refreshing = false;
@@ -36,9 +40,11 @@ export class Sensores implements OnInit {
   sensorSeleccionado: Sensor | null = null;
   formData: CreateSensor = { tipo_sensor: '', descripcion: '', unidad_medida: '', id_dispositivo: undefined };
   viewMode: 'grid' | 'table' = 'table';
+  private updateIntervalId: any;
 
   constructor(
     private sensorService: SensorService,
+    private telemetryService: TelemetryService,
     private cdr: ChangeDetectorRef,
     private location: Location,
     private router: Router
@@ -46,6 +52,66 @@ export class Sensores implements OnInit {
 
   ngOnInit(): void {
     this.cargarSensores();
+    this.cargarTelemetria();
+    
+    // Actualizar telemetría cada 5 segundos
+    this.updateIntervalId = setInterval(() => {
+      this.cargarTelemetria();
+      this.cdr.markForCheck();
+    }, 5000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.updateIntervalId) {
+      clearInterval(this.updateIntervalId);
+    }
+  }
+
+  cargarTelemetria(): void {
+    this.telemetryService.getAll().pipe(
+      finalize(() => this.cdr.markForCheck())
+    ).subscribe({
+      next: (telemetrias) => {
+        this.telemetrias = telemetrias || [];
+        this.telemetriaPorDispositivo.clear();
+        this.telemetrias.forEach((item) => {
+          const key = item.panelId?.toString();
+          if (key) {
+            this.telemetriaPorDispositivo.set(key, item);
+          }
+        });
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error cargando telemetría de sensores:', error);
+      }
+    });
+  }
+
+  buscarTelemetriaSensor(sensor: Sensor): SolarTelemetry | undefined {
+    return this.telemetriaPorDispositivo.get(sensor.id_dispositivo?.toString() ?? '');
+  }
+
+  obtenerFechaTelemetria(sensor: Sensor): string {
+    const telemetry = this.buscarTelemetriaSensor(sensor);
+    return telemetry?.timestamp ? this.formatTimestamp(telemetry.timestamp) : 'N/A';
+  }
+
+  formatTimestamp(timestamp: string | undefined): string {
+    if (!timestamp) {
+      return 'N/A';
+    }
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
   }
 
   cargarSensores(): void {
@@ -81,6 +147,7 @@ export class Sensores implements OnInit {
       next: (sensores) => {
         this.sensores = sensores;
         this.sensoresFiltrados = [...sensores];
+        this.cargarTelemetria();
       },
       error: (error) => {
         console.error('Error refreshing sensores:', error);

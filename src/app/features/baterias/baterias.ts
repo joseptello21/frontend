@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef
 } from '@angular/core';
@@ -10,6 +11,7 @@ import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { BateriaService, Bateria } from '../../core/services/bateria.service';
+import { TelemetryService, SolarTelemetry } from '../../core/services/telemetry.service';
 
 @Component({
   selector: 'app-baterias',
@@ -19,10 +21,12 @@ import { BateriaService, Bateria } from '../../core/services/bateria.service';
   styleUrl: './baterias.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Baterias implements OnInit {
+export class Baterias implements OnInit, OnDestroy {
 
   baterias: Bateria[] = [];
   bateriasFiltradas: Bateria[] = [];
+  telemetrias: SolarTelemetry[] = [];
+  telemetriaPorBateria: Map<string, SolarTelemetry> = new Map();
 
   loading = false;
   refreshing = false;
@@ -36,9 +40,11 @@ export class Baterias implements OnInit {
   bateriaSeleccionada: Bateria | null = null;
   formData: any = { capacidad_ah: undefined, voltaje: undefined, estado: 'activo', id_panel: undefined };
   viewMode: 'grid' | 'table' = 'table';
+  private updateIntervalId: any;
 
   constructor(
     private bateriaService: BateriaService,
+    private telemetryService: TelemetryService,
     private cdr: ChangeDetectorRef,
     private location: Location,
     private router: Router
@@ -46,6 +52,66 @@ export class Baterias implements OnInit {
 
   ngOnInit(): void {
     this.cargarBaterias();
+    this.cargarTelemetria();
+    
+    // Actualizar telemetría cada 5 segundos
+    this.updateIntervalId = setInterval(() => {
+      this.cargarTelemetria();
+      this.cdr.markForCheck();
+    }, 5000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.updateIntervalId) {
+      clearInterval(this.updateIntervalId);
+    }
+  }
+
+  cargarTelemetria(): void {
+    this.telemetryService.getAll().pipe(
+      finalize(() => this.cdr.markForCheck())
+    ).subscribe({
+      next: (telemetrias) => {
+        this.telemetrias = telemetrias || [];
+        this.telemetriaPorBateria.clear();
+        this.telemetrias.forEach((item) => {
+          const key = item.batteryId?.toString();
+          if (key) {
+            this.telemetriaPorBateria.set(key, item);
+          }
+        });
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error cargando telemetría de baterías:', error);
+      }
+    });
+  }
+
+  buscarTelemetriaBateria(bateria: Bateria): SolarTelemetry | undefined {
+    return this.telemetriaPorBateria.get(bateria.id_bateria?.toString() ?? '');
+  }
+
+  obtenerFechaTelemetria(bateria: Bateria): string {
+    const telemetry = this.buscarTelemetriaBateria(bateria);
+    return telemetry?.timestamp ? this.formatTimestamp(telemetry.timestamp) : 'N/A';
+  }
+
+  formatTimestamp(timestamp: string | undefined): string {
+    if (!timestamp) {
+      return 'N/A';
+    }
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
   }
 
   cargarBaterias(): void {
@@ -81,6 +147,7 @@ export class Baterias implements OnInit {
       next: (baterias) => {
         this.baterias = baterias;
         this.bateriasFiltradas = [...baterias];
+        this.cargarTelemetria();
       },
       error: (error) => {
         console.error('Error refreshing baterias:', error);

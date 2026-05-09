@@ -255,7 +255,17 @@
 
           <div class="info-item">
             <span>Última conexión</span>
-            <strong>{{ dispositivo.last_seen ? (dispositivo.last_seen | date:'dd/MM/yyyy') : 'Nunca' }}</strong>
+            <strong>{{ dispositivo.last_seen ? formatTimestamp(dispositivo.last_seen) : 'Nunca' }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>LDR</span>
+            <strong>{{ buscarTelemetriaDispositivo(dispositivo)?.ldr ?? 'N/A' }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Voltaje batería</span>
+            <strong>{{ buscarTelemetriaDispositivo(dispositivo)?.batteryVoltage != null ? buscarTelemetriaDispositivo(dispositivo)?.batteryVoltage + ' V' : 'N/A' }}</strong>
           </div>
         </div>
 
@@ -271,7 +281,7 @@
         <div class="device-card-footer">
           <small>
             <i class="fa-regular fa-clock"></i>
-            Actualizado: {{ dispositivo.updated_at ? (dispositivo.updated_at | date:'dd/MM/yyyy HH:mm') : 'Sin fecha' }}
+            Actualizado: {{ dispositivo.updated_at ? formatTimestamp(dispositivo.updated_at) : 'Sin fecha' }}
           </small>
 
           <div class="card-actions">
@@ -310,10 +320,12 @@
             <th>Ubicación</th>
             <th>Estado</th>
             <th>Modo</th>
+            <th>LDR</th>
+            <th>Voltaje</th>
+            <th>Última lect.</th>
             <th class="text-right">Acciones</th>
           </tr>
         </thead>
-
         <tbody>
           <tr *ngFor="let dispositivo of dispositivosFiltrados; trackBy: trackByDeviceId">
             <td>
@@ -343,12 +355,9 @@
             </td>
 
             <td>{{ etiquetaModo(dispositivo.mode) }}</td>
-
-            <td>
-              <span class="active-dot" [class.enabled]="dispositivo.active">
-                {{ dispositivo.active ? 'Sí' : 'No' }}
-              </span>
-            </td>
+            <td>{{ buscarTelemetriaDispositivo(dispositivo)?.ldr ?? 'N/A' }}</td>
+            <td>{{ buscarTelemetriaDispositivo(dispositivo)?.batteryVoltage != null ? buscarTelemetriaDispositivo(dispositivo)?.batteryVoltage + ' V' : 'N/A' }}</td>
+            <td>{{ obtenerFechaTelemetria(dispositivo) }}</td>
 
             <td class="text-right">
               <button

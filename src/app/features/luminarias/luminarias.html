@@ -126,6 +126,16 @@
             <span>Zona</span>
             <strong>{{ luminaria.id_zona || 'N/A' }}</strong>
           </div>
+
+          <div class="info-item">
+            <span>Energía generada</span>
+            <strong>{{ buscarTelemetriaLuminaria(luminaria)?.energiaGenerada != null ? buscarTelemetriaLuminaria(luminaria)?.energiaGenerada + ' W' : 'N/A' }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Última lect.</span>
+            <strong>{{ obtenerFechaTelemetria(luminaria) }}</strong>
+          </div>
         </div>
 
         <div class="luminaria-actions">
@@ -149,6 +159,8 @@
               <th>Potencia (W)</th>
               <th>Estado</th>
               <th>Zona</th>
+              <th>Energía</th>
+              <th>Última lect.</th>
               <th class="text-right">Acciones</th>
             </tr>
           </thead>
@@ -163,6 +175,8 @@
                 </span>
               </td>
               <td>{{ luminaria.id_zona || 'N/A' }}</td>
+              <td>{{ buscarTelemetriaLuminaria(luminaria)?.energiaGenerada != null ? buscarTelemetriaLuminaria(luminaria)?.energiaGenerada + ' W' : 'N/A' }}</td>
+              <td>{{ obtenerFechaTelemetria(luminaria) }}</td>
               <td class="actions">
                 <button class="action-button edit" type="button" title="Editar" (click)="abrirModalEditar(luminaria)">
                   <i class="fa-solid fa-pen"></i>
@@ -173,7 +187,7 @@
               </td>
             </tr>
             <tr *ngIf="luminariasFiltradas.length === 0">
-              <td colspan="6" class="empty-state">
+              <td colspan="8" class="empty-state">
                 <i class="fa-solid fa-lightbulb"></i>
                 <p>No hay luminarias registradas</p>
               </td>

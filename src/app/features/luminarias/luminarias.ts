@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef
 } from '@angular/core';
@@ -10,6 +11,7 @@ import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { LuminariaService, Luminaria, CreateLuminaria } from '../../core/services/luminaria.service';
+import { TelemetryService, SolarTelemetry } from '../../core/services/telemetry.service';
 
 @Component({
   selector: 'app-luminarias',
@@ -19,10 +21,12 @@ import { LuminariaService, Luminaria, CreateLuminaria } from '../../core/service
   styleUrl: './luminarias.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Luminarias implements OnInit {
+export class Luminarias implements OnInit, OnDestroy {
 
   luminarias: Luminaria[] = [];
   luminariasFiltradas: Luminaria[] = [];
+  telemetrias: SolarTelemetry[] = [];
+  telemetriaPorLuminaria: Map<string, SolarTelemetry> = new Map();
 
   loading = false;
   refreshing = false;
@@ -37,9 +41,11 @@ export class Luminarias implements OnInit {
   luminariaSeleccionada: Luminaria | null = null;
   formData: CreateLuminaria = { tipo_luminaria: '', potencia_watts: undefined, estado: 'activo', id_zona: undefined };
   viewMode: 'grid' | 'table' = 'table';
+  private updateIntervalId: any;
 
   constructor(
     private luminariaService: LuminariaService,
+    private telemetryService: TelemetryService,
     private cdr: ChangeDetectorRef,
     private location: Location,
     private router: Router
@@ -47,6 +53,66 @@ export class Luminarias implements OnInit {
 
   ngOnInit(): void {
     this.cargarLuminarias();
+    this.cargarTelemetria();
+    
+    // Actualizar telemetría cada 5 segundos
+    this.updateIntervalId = setInterval(() => {
+      this.cargarTelemetria();
+      this.cdr.markForCheck();
+    }, 5000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.updateIntervalId) {
+      clearInterval(this.updateIntervalId);
+    }
+  }
+
+  cargarTelemetria(): void {
+    this.telemetryService.getAll().pipe(
+      finalize(() => this.cdr.markForCheck())
+    ).subscribe({
+      next: (telemetrias) => {
+        this.telemetrias = telemetrias || [];
+        this.telemetriaPorLuminaria.clear();
+        this.telemetrias.forEach((item) => {
+          const key = item.luminariaId?.toString();
+          if (key) {
+            this.telemetriaPorLuminaria.set(key, item);
+          }
+        });
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error cargando telemetría de luminarias:', error);
+      }
+    });
+  }
+
+  buscarTelemetriaLuminaria(luminaria: Luminaria): SolarTelemetry | undefined {
+    return this.telemetriaPorLuminaria.get(luminaria.id_luminaria?.toString() ?? '');
+  }
+
+  obtenerFechaTelemetria(luminaria: Luminaria): string {
+    const telemetry = this.buscarTelemetriaLuminaria(luminaria);
+    return telemetry?.timestamp ? this.formatTimestamp(telemetry.timestamp) : 'N/A';
+  }
+
+  formatTimestamp(timestamp: string | undefined): string {
+    if (!timestamp) {
+      return 'N/A';
+    }
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
   }
 
   cargarLuminarias(): void {
@@ -82,6 +148,7 @@ export class Luminarias implements OnInit {
       next: (luminarias) => {
         this.luminarias = luminarias;
         this.luminariasFiltradas = [...luminarias];
+        this.cargarTelemetria();
       },
       error: (error) => {
         console.error('Error refreshing luminarias:', error);
