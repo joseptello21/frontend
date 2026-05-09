@@ -1,6 +1,6 @@
 // src/app/features/data-view/data-view.component.ts
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { StorageService } from '../../core/services/storage.service';
@@ -34,6 +34,8 @@ export class DataViewComponent implements OnInit {
   usuarios: any[] = [];
   telemetrias: SolarTelemetry[] = [];
   latestTelemetry: SolarTelemetry | null = null;
+  private updateIntervalId: any;
+  formattedTimestamps: Map<any, string> = new Map();
 
   constructor(
     private storageService: StorageService,
@@ -52,6 +54,17 @@ export class DataViewComponent implements OnInit {
     this.recursos = this.storageService.getRecursos();
 
     this.loadData();
+    
+    // Actualizar timestamps cada segundo
+    this.updateIntervalId = setInterval(() => {
+      this.updateFormattedTimestamps();
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.updateIntervalId) {
+      clearInterval(this.updateIntervalId);
+    }
   }
 
   private loadData(): void {
@@ -277,6 +290,78 @@ export class DataViewComponent implements OnInit {
         }
       ];
     }
+  }
+
+  formatTimestamp(timestamp: any): string {
+    if (!timestamp || timestamp === 'N/A') {
+      return 'Nunca';
+    }
+
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        return 'Fecha inválida';
+      }
+
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const seconds = date.getSeconds().toString().padStart(2, '0');
+
+      return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    } catch (error) {
+      return 'Fecha inválida';
+    }
+  }
+
+  getTimeAgoDisplay(timestamp: any): string {
+    if (!timestamp || timestamp === 'N/A') {
+      return 'Nunca';
+    }
+
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        return 'Fecha inválida';
+      }
+
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffSeconds = Math.floor(diffMs / 1000);
+      const diffMinutes = Math.floor(diffSeconds / 60);
+      const diffHours = Math.floor(diffMinutes / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffSeconds < 60) {
+        return `hace ${diffSeconds} segundo${diffSeconds !== 1 ? 's' : ''}`;
+      } else if (diffMinutes < 60) {
+        return `hace ${diffMinutes} minuto${diffMinutes !== 1 ? 's' : ''}`;
+      } else if (diffHours < 24) {
+        return `hace ${diffHours} hora${diffHours !== 1 ? 's' : ''}`;
+      } else {
+        return `hace ${diffDays} día${diffDays !== 1 ? 's' : ''}`;
+      }
+    } catch (error) {
+      return 'Fecha inválida';
+    }
+  }
+
+  getFormattedLatestTime(): string {
+    if (!this.latestTelemetry || !this.latestTelemetry.timestamp) {
+      return 'Nunca';
+    }
+    return this.formatTimestamp(this.latestTelemetry.timestamp);
+  }
+
+  updateFormattedTimestamps(): void {
+    // Actualizar timestamps formateados para todas las telemetrías
+    this.telemetrias.forEach(item => {
+      if (item.timestamp) {
+        this.formattedTimestamps.set(item, this.formatTimestamp(item.timestamp));
+      }
+    });
   }
 
   volverAlDashboard(): void {

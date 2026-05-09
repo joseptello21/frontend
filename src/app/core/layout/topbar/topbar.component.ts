@@ -1,6 +1,6 @@
 // src/app/core/layout/topbar/topbar.component.ts
 
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -15,9 +15,12 @@ import { Usuario } from '../../models/usuario.model';
   templateUrl: './topbar.component.html',
   styleUrls: ['./topbar.component.css']
 })
-export class TopbarComponent {
+export class TopbarComponent implements OnInit, OnDestroy {
 
   usuario: Usuario | null = null;
+  currentTime: string = '';
+  currentDate: string = '';
+  private intervalId: any;
 
   constructor(
     private storageService: StorageService,
@@ -25,6 +28,37 @@ export class TopbarComponent {
     private router: Router
   ) {
     this.usuario = this.storageService.getUsuario();
+  }
+
+  ngOnInit(): void {
+    this.updateClock();
+    this.intervalId = setInterval(() => this.updateClock(), 1000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+  }
+
+  private updateClock(): void {
+    const now = new Date();
+    
+    // Formato de hora: HH:mm:ss
+    this.currentTime = now.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    
+    // Formato de fecha: día, DD de mes de YYYY
+    this.currentDate = now.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   }
 
   logout(): void {

@@ -29,7 +29,7 @@
         <strong>Fotoresistor</strong>
         <p>LDR: {{ latestTelemetry?.ldr != null ? latestTelemetry?.ldr : 'N/A' }}</p>
         <p>Estado: {{ getSensorState() }}</p>
-        <p>Última lectura: {{ latestTelemetry?.timestamp || 'N/A' }}</p>
+        <p>Última lectura: {{ getFormattedLatestTime() }}</p>
       </div>
       <div class="status-card">
         <strong>Batería</strong>
@@ -70,7 +70,7 @@
                 {{ dispositivo.estado || dispositivo.status || 'Desconocido' }}
               </span>
             </td>
-            <td>{{ dispositivo.ultima_conexion || dispositivo.last_seen || dispositivo.updated_at || dispositivo.created_at || 'Nunca' }}</td>
+            <td>{{ formatTimestamp(dispositivo.ultima_conexion || dispositivo.last_seen || dispositivo.updated_at || dispositivo.created_at) }}</td>
           </tr>
           <tr *ngIf="dispositivos.length === 0">
             <td colspan="5" class="empty-state">No hay dispositivos registrados</td>
@@ -186,7 +186,8 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>Timestamp</th>
+            <th>Hora</th>
+            <th>Hace</th>
             <th>LDR</th>
             <th>Voltaje batería</th>
             <th>Lámpara</th>
@@ -201,7 +202,8 @@
         <tbody>
           <tr *ngFor="let item of telemetrias">
             <td>{{ item.id }}</td>
-            <td>{{ item.timestamp }}</td>
+            <td>{{ formatTimestamp(item.timestamp) }}</td>
+            <td>{{ getTimeAgoDisplay(item.timestamp) }}</td>
             <td>{{ item.ldr }}</td>
             <td>{{ item.batteryVoltage }}</td>
             <td>{{ item.lamp ? 'Encendido' : 'Apagado' }}</td>
@@ -213,7 +215,7 @@
             <td>{{ item.energiaGenerada != null ? item.energiaGenerada : 'N/A' }}</td>
           </tr>
           <tr *ngIf="telemetrias.length === 0">
-            <td colspan="11" class="empty-state">No hay telemetría disponible</td>
+            <td colspan="12" class="empty-state">No hay telemetría disponible</td>
           </tr>
         </tbody>
       </table>
