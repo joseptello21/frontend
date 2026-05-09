@@ -18,6 +18,10 @@ export class LoginComponent {
 
   username = '';
   password = '';
+  forgotEmail = '';
+  forgotMessage = '';
+  forgotError = '';
+  showForgot = false;
 
   loading = false;
   errorMessage = '';
@@ -34,6 +38,8 @@ export class LoginComponent {
     }
 
     this.errorMessage = '';
+    this.forgotMessage = '';
+    this.forgotError = '';
 
     const username = this.username.trim();
     const password = this.password.trim();
@@ -61,6 +67,51 @@ export class LoginComponent {
         this.loading = false;
         this.errorMessage = this.obtenerMensajeError(error);
 
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  toggleForgotPassword(): void {
+    this.showForgot = !this.showForgot;
+    this.forgotMessage = '';
+    this.forgotError = '';
+    this.forgotEmail = '';
+    this.cdr.detectChanges();
+  }
+
+  sendForgotPassword(): void {
+    if (this.loading) {
+      return;
+    }
+
+    this.forgotError = '';
+    this.forgotMessage = '';
+
+    const email = this.forgotEmail.trim();
+    if (!email) {
+      this.forgotError = 'Ingrese su email para continuar.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.loading = true;
+    this.cdr.detectChanges();
+
+    this.authService.forgotPassword(email).subscribe({
+      next: (response: any) => {
+        this.loading = false;
+        if (response?.success) {
+          this.forgotMessage = response.message || 'Revisa tu correo para restablecer tu contraseña.';
+        } else {
+          this.forgotError = response?.message || 'No se pudo procesar la solicitud.';
+        }
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error en forgot password:', error);
+        this.loading = false;
+        this.forgotError = 'Error de conexión. Intente nuevamente.';
         this.cdr.detectChanges();
       }
     });

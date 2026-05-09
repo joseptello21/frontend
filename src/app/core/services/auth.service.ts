@@ -2,7 +2,7 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, catchError, of } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { AuthResponse } from '../models/auth-response.model';
@@ -51,6 +51,15 @@ export class AuthService {
                         this.storageService.setUsuario(usuario);
                     }
                 }
+            })
+        );
+    }
+
+    forgotPassword(email: string): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/auth/forgot-password`, { email }).pipe(
+            catchError(error => {
+                console.error('Forgot password request failed:', error);
+                return of({ success: false, message: 'No fue posible enviar la solicitud de recuperación.' });
             })
         );
     }

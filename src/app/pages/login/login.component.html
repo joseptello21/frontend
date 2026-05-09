@@ -34,6 +34,43 @@
                 </div>
             </div>
 
+            <div class="forgot-password-link">
+                <a role="button" (click)="toggleForgotPassword()">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <div class="forgot-password-card" *ngIf="showForgot">
+                <h2>Recuperar contraseña</h2>
+                <p>Ingresa el email con el que te registraste y te enviaremos un enlace para restablecerla.</p>
+
+                <div class="success-message" *ngIf="forgotMessage">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>{{ forgotMessage }}</span>
+                </div>
+
+                <div class="error-message" *ngIf="forgotError">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>{{ forgotError }}</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="forgotEmail">Email de recuperación</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input id="forgotEmail" type="email" name="forgotEmail" [(ngModel)]="forgotEmail"
+                            placeholder="Ingrese su email" autocomplete="email" [disabled]="loading">
+                    </div>
+                </div>
+
+                <div class="forgot-actions">
+                    <button type="button" class="btn-secondary" (click)="sendForgotPassword()" [disabled]="loading">
+                        Enviar enlace
+                    </button>
+                    <button type="button" class="btn-light" (click)="toggleForgotPassword()" [disabled]="loading">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+
             <div class="error-message" *ngIf="errorMessage">
                 <i class="fa-solid fa-circle-exclamation"></i>
                 <span>{{ errorMessage }}</span>
