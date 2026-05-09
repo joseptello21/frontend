@@ -67,6 +67,16 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/auth/register`, { email, password, nombre });
   }
 
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/forgot-password`, { email })
+      .pipe(
+        catchError(error => {
+          console.error('Forgot password error:', error);
+          return of({ success: false, message: 'No se pudo enviar la solicitud de recuperación' });
+        })
+      );
+  }
+
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

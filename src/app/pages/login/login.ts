@@ -14,7 +14,11 @@ import { AuthService } from '../../core/services/auth';
 export class Login {
   email = '';
   password = '';
+  showForgot = false;
+  forgotEmail = '';
   error = signal('');
+  forgotMessage = signal('');
+  forgotError = signal('');
   loading = signal(false);
 
   constructor(private authService: AuthService, private router: Router) {}
@@ -40,6 +44,38 @@ export class Login {
       error: () => {
         this.loading.set(false);
         this.error.set('Error de conexión con el servidor');
+      }
+    });
+  }
+
+  toggleForgotPassword(): void {
+    this.showForgot = !this.showForgot;
+    this.forgotMessage.set('');
+    this.forgotError.set('');
+  }
+
+  sendForgotPassword(): void {
+    if (!this.forgotEmail) {
+      this.forgotError.set('Ingrese su email para continuar');
+      return;
+    }
+
+    this.loading.set(true);
+    this.forgotError.set('');
+    this.forgotMessage.set('');
+
+    this.authService.forgotPassword(this.forgotEmail).subscribe({
+      next: (response) => {
+        this.loading.set(false);
+        if (response?.success) {
+          this.forgotMessage.set(response.message || 'Revisa tu correo para recuperar tu contraseña');
+        } else {
+          this.forgotError.set(response?.message || 'No se pudo procesar la solicitud');
+        }
+      },
+      error: () => {
+        this.loading.set(false);
+        this.forgotError.set('Error de conexión con el servidor');
       }
     });
   }
