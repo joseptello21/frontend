@@ -2,17 +2,21 @@
 
   <div class="sidebar-header">
     <div class="logo">
-      <i class="fa-solid fa-layer-group"></i>
+      <i class="fa-solid fa-sun"></i>
     </div>
 
     <div class="brand" *ngIf="!collapsed">
-      <h2>Mi Sistema</h2>
-      <span>Panel de control</span>
+      <h2>Solar UI</h2>
+      <span>Panel de navegación</span>
     </div>
+
+    <button type="button" class="sidebar-toggle" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+      <i class="fa-solid" [ngClass]="collapsed ? 'fa-chevron-right' : 'fa-chevron-left'"></i>
+    </button>
   </div>
 
   <nav class="menu">
-    <div>Menu items: {{ menu.length || 0 }}</div>
+    <div class="menu-title" *ngIf="!collapsed">Navegación</div>
 
     <ng-container *ngFor="let item of menu">
       <div *ngIf="(item.items?.length ?? 0) > 0; else menuLink" class="menu-group">
@@ -22,12 +26,12 @@
           <span class="arrow" [class.rotate]="isOpen(item.id)">&#9660;</span>
         </button>
         <div class="submenu" *ngIf="isOpen(item.id)">
-          <a *ngFor="let child of item.items ?? []" [routerLink]="child.path">{{ child.nombre }}</a>
+          <a *ngFor="let child of item.items ?? []" [routerLink]="child.path" (click)="closeSidebar()">{{ child.nombre }}</a>
         </div>
       </div>
       <ng-template #menuLink>
         <div class="menu-item">
-          <a [routerLink]="item.path">
+          <a [routerLink]="item.path" (click)="closeSidebar()">
             <i [class]="item.icono"></i>
             <span>{{ item.nombre }}</span>
           </a>

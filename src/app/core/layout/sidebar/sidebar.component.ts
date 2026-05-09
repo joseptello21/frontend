@@ -9,7 +9,7 @@ import { MenuItem, MenuService } from '../../services/menu.service';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css'
+  styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent implements OnInit {
 
@@ -20,6 +20,16 @@ export class SidebarComponent implements OnInit {
 
   constructor(private menuService: MenuService) {
     console.log('SidebarComponent constructor called');
+  }
+
+  toggleSidebar(): void {
+    this.collapsed = !this.collapsed;
+  }
+
+  closeSidebar(): void {
+    if (window.innerWidth <= 900) {
+      this.collapsed = true;
+    }
   }
 
   ngOnInit(): void {

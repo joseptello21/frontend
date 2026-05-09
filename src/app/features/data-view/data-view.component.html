@@ -15,6 +15,37 @@
     </div>
   </section>
 
+  <!-- Estado actual del simulador -->
+  <section class="data-section status-summary">
+    <h3>Estado actual del simulador</h3>
+    <div class="summary-grid">
+      <div class="status-card">
+        <strong>Panel solar</strong>
+        <p>ID: {{ latestTelemetry?.panelId || 'N/A' }}</p>
+        <p>Estado: {{ getPanelState() }}</p>
+        <p>Energía generada: {{ latestTelemetry?.energiaGenerada != null ? latestTelemetry?.energiaGenerada + ' W' : 'N/A' }}</p>
+      </div>
+      <div class="status-card">
+        <strong>Fotoresistor</strong>
+        <p>LDR: {{ latestTelemetry?.ldr != null ? latestTelemetry?.ldr : 'N/A' }}</p>
+        <p>Estado: {{ getSensorState() }}</p>
+        <p>Última lectura: {{ latestTelemetry?.timestamp || 'N/A' }}</p>
+      </div>
+      <div class="status-card">
+        <strong>Batería</strong>
+        <p>ID: {{ latestTelemetry?.batteryId || 'N/A' }}</p>
+        <p>Voltaje: {{ latestTelemetry?.batteryVoltage != null ? latestTelemetry?.batteryVoltage + ' V' : 'N/A' }}</p>
+        <p>Estado: {{ getBatteryState() }}</p>
+      </div>
+      <div class="status-card">
+        <strong>Luminaria</strong>
+        <p>ID: {{ latestTelemetry?.luminariaId || 'N/A' }}</p>
+        <p>Estado: {{ getLuminariaState() }}</p>
+        <p>Manual: {{ latestTelemetry?.manualStatus ? 'Sí' : 'No' }}</p>
+      </div>
+    </div>
+  </section>
+
   <!-- Dispositivos Section -->
   <section class="data-section">
     <h3>Dispositivos IoT</h3>

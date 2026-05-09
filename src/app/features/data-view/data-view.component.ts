@@ -33,6 +33,7 @@ export class DataViewComponent implements OnInit {
   baterias: any[] = [];
   usuarios: any[] = [];
   telemetrias: SolarTelemetry[] = [];
+  latestTelemetry: SolarTelemetry | null = null;
 
   constructor(
     private storageService: StorageService,
@@ -56,27 +57,19 @@ export class DataViewComponent implements OnInit {
   private loadData(): void {
     // Datos de ejemplo para mostrar la estructura de las tablas
     this.dispositivos = [
-      { id: 1, nombre: 'Sensor Temperatura 1', tipo: 'Temperatura', estado: 'activo', ultima_conexion: '2024-01-15 10:30:00' },
-      { id: 2, nombre: 'Sensor Humedad 1', tipo: 'Humedad', estado: 'activo', ultima_conexion: '2024-01-15 10:25:00' },
-      { id: 3, nombre: 'Controlador LED 1', tipo: 'Controlador', estado: 'inactivo', ultima_conexion: '2024-01-14 18:45:00' }
+      { id: 1, nombre: 'Panel Solar Principal', tipo: 'Panel Solar', estado: 'activo', ultima_conexion: '2024-01-15 10:30:00' }
     ];
 
     this.luminarias = [
-      { id_luminaria: 1, tipo_luminaria: 'LED', potencia_watts: 50, estado: 'activo', id_zona: 1 },
-      { id_luminaria: 2, tipo_luminaria: 'Fluorescente', potencia_watts: 75, estado: 'activo', id_zona: 2 },
-      { id_luminaria: 3, tipo_luminaria: 'LED', potencia_watts: 30, estado: 'inactivo', id_zona: 1 }
+      { id_luminaria: 1, tipo_luminaria: 'LED', potencia_watts: 50, estado: 'activo', id_zona: 1 }
     ];
 
     this.sensores = [
-      { id_sensor: 1, tipo_sensor: 'Temperatura', descripcion: 'Sensor de temperatura ambiente', unidad_medida: '°C', id_dispositivo: 1 },
-      { id_sensor: 2, tipo_sensor: 'Humedad', descripcion: 'Sensor de humedad relativa', unidad_medida: '%', id_dispositivo: 2 },
-      { id_sensor: 3, tipo_sensor: 'Luminosidad', descripcion: 'Sensor de luz ambiente', unidad_medida: 'lux', id_dispositivo: 1 }
+      { id_sensor: 1, tipo_sensor: 'Fotoresistor', descripcion: 'Sensor de luminosidad del panel', unidad_medida: 'lux', id_dispositivo: 1 }
     ];
 
     this.baterias = [
-      { id_bateria: 1, capacidad_ah: 100, voltaje: 12, estado: 'activo', id_panel: 1 },
-      { id_bateria: 2, capacidad_ah: 150, voltaje: 24, estado: 'activo', id_panel: 2 },
-      { id_bateria: 3, capacidad_ah: 80, voltaje: 12, estado: 'inactivo', id_panel: 1 }
+      { id_bateria: 1, capacidad_ah: 100, voltaje: 12, estado: 'activo', id_panel: 1 }
     ];
 
     this.usuarios = [
@@ -161,7 +154,13 @@ export class DataViewComponent implements OnInit {
       next: (data: any) => {
         const telemetrias = this.normalizeArrayResponse<any>(data, ['telemetrias', 'telemetria', 'items', 'data']);
         if (telemetrias.length > 0) {
-          this.telemetrias = telemetrias.map((item: any) => this.mapTelemetryToDisplay(item));
+          this.telemetrias = telemetrias
+            .map((item: any) => this.mapTelemetryToDisplay(item))
+            .sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+          this.latestTelemetry = this.getLatestTelemetryFromList(this.telemetrias);
+          if (this.latestTelemetry) {
+            this.updateDeviceViewsFromTelemetry(this.latestTelemetry);
+          }
         }
       },
       error: (err: any) => console.log('Using example data for telemetría solar', err)
@@ -187,7 +186,7 @@ export class DataViewComponent implements OnInit {
       batteryVoltage: telemetry.batteryVoltage ?? telemetry.battery_voltage ?? telemetry.voltaje ?? telemetry.bat ?? null,
       lamp: telemetry.lamp ?? telemetry.lampState ?? telemetry.lamp_state ?? telemetry.lamp_status ?? telemetry.lampara ?? false,
       autoMode: telemetry.autoMode ?? telemetry.auto_mode ?? telemetry.is_auto ?? telemetry.auto ?? false,
-      manualStatus: telemetry.manualStatus ?? telemetry.manualStatus ?? telemetry.manual_status ?? false,
+      manualStatus: telemetry.manualStatus ?? telemetry.manual_status ?? false,
       panelId: telemetry.panelId ?? telemetry.id_panel ?? telemetry.panel_id ?? 'N/A',
       batteryId: telemetry.batteryId ?? telemetry.id_bateria ?? telemetry.battery_id ?? 'N/A',
       luminariaId: telemetry.luminariaId ?? telemetry.id_luminaria ?? telemetry.luminaria_id ?? 'N/A',
@@ -195,6 +194,90 @@ export class DataViewComponent implements OnInit {
     };
   }
 
+  private getLatestTelemetryFromList(telemetrias: SolarTelemetry[]): SolarTelemetry | null {
+    if (telemetrias.length === 0) {
+      return null;
+    }
+    return telemetrias[0];
+  }
+
+  getPanelState(): string {
+    if (!this.latestTelemetry) {
+      return 'Desconocido';
+    }
+    return this.latestTelemetry.panelId !== 'N/A' ? 'Activo' : 'Inactivo';
+  }
+
+  getBatteryState(): string {
+    if (!this.latestTelemetry) {
+      return 'Desconocido';
+    }
+    return this.latestTelemetry.batteryVoltage != null && this.latestTelemetry.batteryVoltage > 0 ? 'Activo' : 'Inactivo';
+  }
+
+  getSensorState(): string {
+    if (!this.latestTelemetry) {
+      return 'Desconocido';
+    }
+    return this.latestTelemetry.ldr != null ? 'Activo' : 'Inactivo';
+  }
+
+  getLuminariaState(): string {
+    if (!this.latestTelemetry) {
+      return 'Desconocido';
+    }
+    return this.latestTelemetry.lamp ? 'Encendida' : 'Apagada';
+  }
+
+  private updateDeviceViewsFromTelemetry(telemetry: SolarTelemetry): void {
+    if (telemetry.panelId && telemetry.panelId !== 'N/A') {
+      this.dispositivos = [
+        {
+          id: telemetry.panelId,
+          nombre: 'Panel Solar',
+          tipo: 'Panel Solar',
+          estado: 'activo',
+          ultima_conexion: telemetry.timestamp || 'N/A'
+        }
+      ];
+    }
+
+    if (telemetry.ldr != null) {
+      this.sensores = [
+        {
+          id_sensor: 1,
+          tipo_sensor: 'Fotoresistor',
+          descripcion: 'Sensor de luminosidad del panel',
+          unidad_medida: 'lux',
+          id_dispositivo: telemetry.panelId || 'N/A'
+        }
+      ];
+    }
+
+    if (telemetry.batteryVoltage != null) {
+      this.baterias = [
+        {
+          id_bateria: telemetry.batteryId || 'N/A',
+          capacidad_ah: null,
+          voltaje: telemetry.batteryVoltage,
+          estado: this.getBatteryState().toLowerCase(),
+          id_panel: telemetry.panelId || 'N/A'
+        }
+      ];
+    }
+
+    if (telemetry.lamp != null) {
+      this.luminarias = [
+        {
+          id_luminaria: telemetry.luminariaId || 'N/A',
+          tipo_luminaria: 'LED',
+          potencia_watts: telemetry.energiaGenerada != null ? telemetry.energiaGenerada : 0,
+          estado: telemetry.lamp ? 'activo' : 'inactivo',
+          id_zona: 1
+        }
+      ];
+    }
+  }
 
   volverAlDashboard(): void {
     this.router.navigate(['/dashboard']);

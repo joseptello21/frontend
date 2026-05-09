@@ -132,6 +132,37 @@
   overflow: hidden;
 }
 
+.status-summary {
+  padding: 20px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  padding: 20px;
+}
+
+.status-card {
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.status-card strong {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.status-card p {
+  margin: 6px 0;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
 .data-section h3 {
   background: #495057;
   color: white;
