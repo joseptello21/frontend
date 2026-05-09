@@ -33,6 +33,9 @@ type EstadoFiltro = 'TODOS' | 'ACTIVO' | 'INACTIVO';
 })
 export class RolesComponent implements OnInit {
 
+  // Variable para controlar si se deben inicializar roles base
+  private inicializarRolesBase = true;
+
   tabActiva: TabVista = 'roles';
 
   roles: Rol[] = [];
@@ -122,6 +125,11 @@ export class RolesComponent implements OnInit {
           this.usuariosRoles = data.usuariosRoles ?? [];
           this.rolesRecursos = data.rolesRecursos ?? [];
 
+          // Inicializar roles base si es primera carga y no hay roles
+          if (this.inicializarRolesBase && this.roles.length === 0) {
+            this.crearRolesBase();
+          }
+
           this.aplicarFiltros();
         },
         error: (error) => {
@@ -129,6 +137,35 @@ export class RolesComponent implements OnInit {
           this.errorMessage = this.obtenerMensajeError(error);
         }
       });
+  }
+
+  crearRolesBase(): void {
+    const rolesBase = [
+      {
+        nombre: 'Operador',
+        descripcion: 'Rol para operar y controlar los dispositivos. Acceso a control manual de lámparas, cambio de modo automático/manual, y envío de comandos.',
+        estado: 'ACTIVO'
+      },
+      {
+        nombre: 'Monitor',
+        descripcion: 'Rol para monitorear datos en tiempo real. Solo visualización de telemetría, datos de sensores, batería y luminarias. Sin permisos de control.',
+        estado: 'ACTIVO'
+      }
+    ];
+
+    rolesBase.forEach(rol => {
+      this.rolService.crear(rol).subscribe({
+        next: (rolCreado) => {
+          if (!this.roles.some(r => r.nombre === rolCreado.nombre)) {
+            this.roles = [rolCreado, ...this.roles];
+            console.log(`✅ Rol "${rolCreado.nombre}" creado exitosamente`);
+          }
+        },
+        error: (error) => {
+          console.warn(`⚠️ No se pudo crear rol base: ${error.message}`);
+        }
+      });
+    });
   }
 
   cambiarTab(tab: TabVista): void {
@@ -735,5 +772,35 @@ export class RolesComponent implements OnInit {
     }
 
     return 'Ocurrió un error al procesar la solicitud.';
+  }
+
+  obtenerTipoRol(rol: Rol | null): 'operador' | 'monitor' | 'admin' | 'custom' {
+    if (!rol || !rol.nombre) return 'custom';
+
+    const nombre = rol.nombre.toLowerCase().trim();
+
+    if (nombre === 'operador') return 'operador';
+    if (nombre === 'monitor') return 'monitor';
+    if (nombre === 'admin') return 'admin';
+
+    return 'custom';
+  }
+
+  tienePermisosOperador(rol: Rol | null): boolean {
+    return this.obtenerTipoRol(rol) === 'operador' || this.obtenerTipoRol(rol) === 'admin';
+  }
+
+  tienePermisosMonitor(rol: Rol | null): boolean {
+    return this.obtenerTipoRol(rol) === 'monitor' || this.obtenerTipoRol(rol) === 'admin';
+  }
+
+  obtenerPermisosPorRol(rol: Rol): { lectura: boolean; escritura: boolean; control: boolean } {
+    const tipo = this.obtenerTipoRol(rol);
+
+    return {
+      lectura: true, // Todos pueden leer
+      escritura: tipo === 'admin',
+      control: tipo === 'operador' || tipo === 'admin'
+    };
   }
 }

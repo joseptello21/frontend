@@ -216,6 +216,32 @@
               </div>
             </div>
 
+            <!-- Badge de permisos según el tipo de rol -->
+            <div class="role-permissions" *ngIf="rol.nombre">
+              <ng-container *ngIf="rol.nombre === 'Operador'">
+                <span class="permission-badge operador" title="Puede operar y controlar dispositivos">
+                  <i class="fa-solid fa-joystick"></i>
+                  Operador
+                </span>
+                <small class="permission-text">Controla lámparas, cambia modos, envía comandos</small>
+              </ng-container>
+
+              <ng-container *ngIf="rol.nombre === 'Monitor'">
+                <span class="permission-badge monitor" title="Solo puede ver datos">
+                  <i class="fa-solid fa-eye"></i>
+                  Monitor
+                </span>
+                <small class="permission-text">Solo visualización de telemetría y datos</small>
+              </ng-container>
+
+              <ng-container *ngIf="rol.nombre !== 'Operador' && rol.nombre !== 'Monitor'">
+                <span class="permission-badge custom" title="Rol personalizado">
+                  <i class="fa-solid fa-gears"></i>
+                  Personalizado
+                </span>
+              </ng-container>
+            </div>
+
             <div class="card-actions">
               <button class="action-button edit" type="button" title="Editar rol" (click)="abrirModalEditarRol(rol)">
                 <i class="fa-solid fa-pen"></i>
