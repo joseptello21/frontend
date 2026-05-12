@@ -10,7 +10,19 @@ export interface Recurso {
   estado: string;
 }
 
+export interface BackendRecurso {
+  id_recurso: number;
+  nombre_recurso: string;
+  descripcion?: string | null;
+  estado: string;
+}
+
 export interface PaginatedRecursoResponse {
+  value: BackendRecurso[];
+  Count: number;
+}
+
+export interface LegacyPaginatedRecursoResponse {
   count: number;
   next: string | null;
   previous: string | null;

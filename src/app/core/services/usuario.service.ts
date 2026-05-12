@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Observable, map, throwError, catchError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthHeadersService } from './auth-headers.service';
-import { Usuario } from '../models/usuario.model';
+import { Usuario, BackendUsuario, BackendUsuarioResponse } from '../models/usuario.model';
 
 export interface CreateUsuario {
   email: string;
@@ -30,8 +30,23 @@ export class UsuarioService {
   }
 
   getAll(): Observable<Usuario[]> {
-    return this.http.get<{ success: boolean; data: Usuario[] }>(this.apiUrl, { headers: this.getHeaders() })
-      .pipe(map(response => response.data || []));
+    return this.http.get<BackendUsuarioResponse | { success: boolean; data: Usuario[] }>(this.apiUrl, { headers: this.getHeaders() })
+      .pipe(
+        map(response => {
+          if ('data' in response && Array.isArray(response.data)) {
+            return response.data.map((backendUser: any) => ({
+              idusuarios: backendUser.id_usuario,
+              username: backendUser.nombre,
+              nombre: backendUser.nombre,
+              email: backendUser.correo,
+              correo: backendUser.correo,
+              id_usuario: backendUser.id_usuario,
+              estado: 'ACTIVO'
+            } as Usuario));
+          }
+          return [];
+        })
+      );
   }
 
   getById(id: number): Observable<Usuario> {

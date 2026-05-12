@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { finalize, forkJoin } from 'rxjs';
+import { finalize, forkJoin, of, switchMap, tap, catchError } from 'rxjs';
 
 import { Rol } from '../../core/models/rol.model';
 import { Recurso } from '../../core/models/recurso.model';
@@ -131,6 +131,10 @@ export class RolesComponent implements OnInit {
           }
 
           this.aplicarFiltros();
+
+          if (primeraCarga) {
+            this.configurarRecursosYRolesIniciales();
+          }
         },
         error: (error) => {
           console.error('Error cargando datos:', error);
@@ -156,7 +160,7 @@ export class RolesComponent implements OnInit {
     rolesBase.forEach(rol => {
       this.rolService.crear(rol).subscribe({
         next: (rolCreado) => {
-          if (!this.roles.some(r => r.nombre === rolCreado.nombre)) {
+          if (!this.roles.some(r => this.normalizarTexto(r.nombre) === this.normalizarTexto(rolCreado.nombre))) {
             this.roles = [rolCreado, ...this.roles];
             console.log(`✅ Rol "${rolCreado.nombre}" creado exitosamente`);
           }
@@ -166,6 +170,133 @@ export class RolesComponent implements OnInit {
         }
       });
     });
+  }
+
+  private configurarRecursosYRolesIniciales(): void {
+    const rolesRequeridos: Partial<Rol>[] = [
+      { nombre: 'Admin', descripcion: 'Rol con todos los permisos del sistema.', estado: 'ACTIVO' },
+      { nombre: 'Operador', descripcion: 'Rol para operar y controlar dispositivos.', estado: 'ACTIVO' },
+      { nombre: 'Monitor', descripcion: 'Rol para monitorear datos en tiempo real.', estado: 'ACTIVO' }
+    ];
+
+    const recursosRequeridos: Partial<Recurso>[] = [
+      { nombre: 'Usuarios', url_backend: '/api/usuarios/', url_frontend: '/usuarios', path: '/api/usuarios/', icono: 'fa-solid fa-users', orden: 1, estado: 'ACTIVO' },
+      { nombre: 'Roles', url_backend: '/api/roles/', url_frontend: '/roles', path: '/api/roles/', icono: 'fa-solid fa-shield-alt', orden: 2, estado: 'ACTIVO' },
+      { nombre: 'Recursos', url_backend: '/api/recursos/', url_frontend: '/roles', path: '/api/recursos/', icono: 'fa-solid fa-list', orden: 3, estado: 'ACTIVO' },
+      { nombre: 'Dashboard', url_backend: '/api/dashboard/', url_frontend: '/dashboard', path: '/api/dashboard/', icono: 'fa-solid fa-chart-line', orden: 4, estado: 'ACTIVO' },
+      { nombre: 'Dispositivos', url_backend: '/api/dispositivos/', url_frontend: '/dispositivos', path: '/api/dispositivos/', icono: 'fa-solid fa-microchip', orden: 5, estado: 'ACTIVO' },
+      { nombre: 'Luminarias', url_backend: '/api/luminarias/', url_frontend: '/luminarias', path: '/api/luminarias/', icono: 'fa-solid fa-lightbulb', orden: 6, estado: 'ACTIVO' },
+      { nombre: 'Sensores', url_backend: '/api/sensores/', url_frontend: '/sensores', path: '/api/sensores/', icono: 'fa-solid fa-gauge', orden: 7, estado: 'ACTIVO' },
+      { nombre: 'Baterías', url_backend: '/api/baterias/', url_frontend: '/baterias', path: '/api/baterias/', icono: 'fa-solid fa-battery-half', orden: 8, estado: 'ACTIVO' }
+    ];
+
+    const usuarioJose = this.usuarios.find(usuario => {
+      const username = usuario.username?.toLowerCase() || '';
+      const nombre = usuario.nombre?.toLowerCase() || '';
+      const apellido = usuario.apellido?.toLowerCase() || '';
+      const email = usuario.email?.toLowerCase() || '';
+      return username.includes('jose') || nombre.includes('jose') || apellido.includes('jose') || email.includes('jose');
+    });
+
+    const rolesACrear = rolesRequeridos.filter(rol =>
+      !this.roles.some(existing => this.normalizarTexto(existing.nombre) === this.normalizarTexto(rol.nombre))
+    );
+
+    const recursosACrear = recursosRequeridos.filter(recurso =>
+      !this.recursos.some(existing => this.normalizarTexto(existing.nombre) === this.normalizarTexto(recurso.nombre))
+    );
+
+    const crearRoles$ = rolesACrear.length
+      ? forkJoin(rolesACrear.map(rol => this.rolService.crear(rol))).pipe(catchError(() => of([] as Rol[])))
+      : of([] as Rol[]);
+
+    const crearRecursos$ = recursosACrear.length
+      ? forkJoin(recursosACrear.map(recurso => this.recursoService.crear(recurso))).pipe(catchError(() => of([] as Recurso[])))
+      : of([] as Recurso[]);
+
+    forkJoin({ roles: crearRoles$, recursos: crearRecursos$ })
+      .pipe(
+        tap(({ roles, recursos }) => {
+          if (roles.length) {
+            this.roles = [...roles, ...this.roles];
+          }
+          if (recursos.length) {
+            this.recursos = [...recursos, ...this.recursos];
+          }
+        }),
+        switchMap(() => this.asignarRecursosAlRolAdmin(recursosRequeridos.map(r => r.nombre!))),
+        switchMap(() => this.asignarRolAdminAJose(usuarioJose)),
+        catchError(error => {
+          console.warn('No se pudo completar la configuración inicial de recursos y roles:', error);
+          return of(null);
+        })
+      )
+      .subscribe(() => {
+        this.aplicarFiltros();
+      });
+  }
+
+  private asignarRecursosAlRolAdmin(nombresRecursos: string[]) {
+    const rolAdmin = this.roles.find(rol => this.normalizarTexto(rol.nombre) === 'admin');
+    if (!rolAdmin) {
+      return of(null);
+    }
+
+    const recursosParaAsignar = this.recursos.filter(recurso =>
+      nombresRecursos.includes(this.normalizarTexto(recurso.nombre))
+    );
+
+    const relacionesFaltantes = recursosParaAsignar.filter(recurso =>
+      !this.rolesRecursos.some(relacion => relacion.rol === rolAdmin.idrol && relacion.recurso === recurso.idRecursos)
+    );
+
+    if (relacionesFaltantes.length === 0) {
+      return of(null);
+    }
+
+    const crearRelaciones$ = forkJoin(
+      relacionesFaltantes.map(recurso =>
+        this.rolRecursoService.crear({ rol: rolAdmin.idrol, recurso: recurso.idRecursos })
+      )
+    ).pipe(catchError(() => of([] as RolRecurso[])));
+
+    return crearRelaciones$.pipe(
+      tap(relaciones => {
+        if (relaciones.length) {
+          this.rolesRecursos = [...relaciones, ...this.rolesRecursos];
+        }
+      })
+    );
+  }
+
+  private asignarRolAdminAJose(usuarioJose?: Usuario) {
+    if (!usuarioJose) {
+      return of(null);
+    }
+
+    const rolAdmin = this.roles.find(rol => this.normalizarTexto(rol.nombre) === 'admin');
+    if (!rolAdmin) {
+      return of(null);
+    }
+
+    const relacionExistente = this.usuariosRoles.find(relacion =>
+      relacion.usuario === usuarioJose.idusuarios && relacion.rol === rolAdmin.idrol
+    );
+
+    if (relacionExistente) {
+      return of(null);
+    }
+
+    return this.usuarioRolService.crear({ usuario: usuarioJose.idusuarios, rol: rolAdmin.idrol }).pipe(
+      tap(relacion => {
+        this.usuariosRoles = [relacion, ...this.usuariosRoles];
+        this.successMessage = `Se asignó el rol Admin al usuario ${usuarioJose.username || usuarioJose.nombre || 'Jose'}.`;
+      }),
+      catchError(error => {
+        console.warn('No se pudo asignar el rol Admin a José:', error);
+        return of(null);
+      })
+    );
   }
 
   cambiarTab(tab: TabVista): void {

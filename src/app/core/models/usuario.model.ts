@@ -10,6 +10,17 @@ export interface Usuario {
   correo?: string;
 }
 
+export interface BackendUsuario {
+  id_usuario: number;
+  correo: string;
+  nombre: string;
+}
+
+export interface BackendUsuarioResponse {
+  success: boolean;
+  data: BackendUsuario[];
+}
+
 export interface PaginatedUsuarioResponse {
   count: number;
   next: string | null;
