@@ -11,7 +11,7 @@ import { AuthHeadersService } from './auth-headers.service';
 })
 export class RecursoService {
 
-  private apiUrl = `${environment.apiUrl}/recursos/`;
+  private apiUrl = `${environment.apiUrl}/api/recursos/`;
 
   constructor(
     private http: HttpClient,

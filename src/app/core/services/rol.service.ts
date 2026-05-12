@@ -13,7 +13,7 @@ import { AuthHeadersService } from './auth-headers.service';
 })
 export class RolService {
 
-    private apiUrl = `${environment.apiUrl}/roles/`;
+    private apiUrl = `${environment.apiUrl}/api/roles/`;
 
     constructor(
         private http: HttpClient,

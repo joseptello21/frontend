@@ -11,7 +11,7 @@ import { AuthHeadersService } from './auth-headers.service';
 })
 export class RolRecursoService {
 
-  private apiUrl = `${environment.apiUrl}/roles-recursos/`;
+  private apiUrl = `${environment.apiUrl}/api/roles-recursos/`;
 
   constructor(
     private http: HttpClient,
