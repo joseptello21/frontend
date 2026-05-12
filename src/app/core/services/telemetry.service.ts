@@ -33,7 +33,7 @@ export class TelemetryService {
 
   getAll(): Observable<SolarTelemetry[]> {
     console.log('📡 Fetching telemetry from:', this.apiUrl);
-    return this.http.get<any>(this.apiUrl).pipe(
+    return this.http.get<any>(this.apiUrl, { headers: this.getHeaders() }).pipe(
       map(response => {
         console.log('✅ Telemetry response:', response);
         if (Array.isArray(response)) {

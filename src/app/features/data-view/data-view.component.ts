@@ -35,6 +35,7 @@ export class DataViewComponent implements OnInit {
   telemetrias: SolarTelemetry[] = [];
   latestTelemetry: SolarTelemetry | null = null;
   private updateIntervalId: any;
+  private telemetryUpdateIntervalId: any;
   formattedTimestamps: Map<any, string> = new Map();
 
   constructor(
@@ -59,11 +60,19 @@ export class DataViewComponent implements OnInit {
     this.updateIntervalId = setInterval(() => {
       this.updateFormattedTimestamps();
     }, 1000);
+
+    // Actualizar telemetría del backend cada 5 segundos
+    this.telemetryUpdateIntervalId = setInterval(() => {
+      this.loadTelemetryUpdate();
+    }, 5000);
   }
 
   ngOnDestroy(): void {
     if (this.updateIntervalId) {
       clearInterval(this.updateIntervalId);
+    }
+    if (this.telemetryUpdateIntervalId) {
+      clearInterval(this.telemetryUpdateIntervalId);
     }
   }
 
