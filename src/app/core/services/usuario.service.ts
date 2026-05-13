@@ -64,8 +64,8 @@ export class UsuarioService {
       .pipe(map(response => response.data));
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+  delete(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
   }
 
   listar(): Observable<Usuario[]> {
@@ -74,8 +74,8 @@ export class UsuarioService {
     );
   }
 
-  eliminar(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() }).pipe(
+  eliminar(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() }).pipe(
       catchError(this.handleError)
     );
   }

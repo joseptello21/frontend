@@ -116,8 +116,8 @@ export class RecursoService {
     );
   }
 
-  eliminar(id: number): Observable<void> {
-    return this.http.delete<void>(
+  eliminar(id: number): Observable<any> {
+    return this.http.delete<any>(
       `${this.apiUrl}${id}/`,
       { headers: this.authHeaders.getAuthHeaders() }
     ).pipe(
