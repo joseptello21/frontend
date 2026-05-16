@@ -19,6 +19,7 @@ import { RecursoService } from '../../core/services/recurso.service';
 import { UsuarioService } from '../../core/services/usuario.service';
 import { UsuarioRolService } from '../../core/services/usuario-rol.service';
 import { RolRecursoService } from '../../core/services/rol-recurso.service';
+import { StorageService } from '../../core/services/storage.service';
 
 type TabVista = 'roles' | 'recursos' | 'usuariosRoles' | 'permisos';
 type EstadoFiltro = 'TODOS' | 'ACTIVO' | 'INACTIVO';
@@ -85,11 +86,40 @@ export class RolesComponent implements OnInit {
     private usuarioService: UsuarioService,
     private usuarioRolService: UsuarioRolService,
     private rolRecursoService: RolRecursoService,
+    private storageService: StorageService,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
+    this.cargarDatosDesdeCache();
     this.cargarDatos(true);
+  }
+
+  private cargarDatosDesdeCache(): void {
+    const cachedRoles = this.storageService.getRoles();
+    const cachedRecursos = this.storageService.getRecursos();
+    const cachedUsuarioRoles = this.storageService.getUsuarioRoles();
+    const cachedRolesRecursos = this.storageService.getRolesRecursos();
+
+    if (cachedRoles.length) {
+      this.roles = cachedRoles;
+    }
+
+    if (cachedRecursos.length) {
+      this.recursos = cachedRecursos;
+    }
+
+    if (cachedUsuarioRoles.length) {
+      this.usuariosRoles = cachedUsuarioRoles;
+    }
+
+    if (cachedRolesRecursos.length) {
+      this.rolesRecursos = cachedRolesRecursos;
+    }
+
+    if (cachedRoles.length || cachedRecursos.length || cachedUsuarioRoles.length || cachedRolesRecursos.length) {
+      this.aplicarFiltros();
+    }
   }
 
   cargarDatos(primeraCarga = false): void {
@@ -124,6 +154,12 @@ export class RolesComponent implements OnInit {
           this.usuarios = data.usuarios ?? [];
           this.usuariosRoles = data.usuariosRoles ?? [];
           this.rolesRecursos = data.rolesRecursos ?? [];
+
+          // Guardar cached roles, recursos y relaciones después de cargar desde el backend
+          this.storageService.setRoles(this.roles);
+          this.storageService.setRecursos(this.recursos);
+          this.storageService.setUsuarioRoles(this.usuariosRoles);
+          this.storageService.setRolesRecursos(this.rolesRecursos);
 
           // Inicializar roles base si es primera carga y no hay roles
           if (this.inicializarRolesBase && this.roles.length === 0) {
@@ -264,6 +300,7 @@ export class RolesComponent implements OnInit {
       tap(relaciones => {
         if (relaciones.length) {
           this.rolesRecursos = [...relaciones, ...this.rolesRecursos];
+          this.storageService.setRolesRecursos(this.rolesRecursos);
         }
       })
     );
@@ -290,6 +327,7 @@ export class RolesComponent implements OnInit {
     return this.usuarioRolService.crear({ usuario: usuarioJose.idusuarios, rol: rolAdmin.idrol }).pipe(
       tap(relacion => {
         this.usuariosRoles = [relacion, ...this.usuariosRoles];
+        this.storageService.setUsuarioRoles(this.usuariosRoles);
         this.successMessage = `Se asignó el rol Admin al usuario ${usuarioJose.username || usuarioJose.nombre || 'Jose'}.`;
       }),
       catchError(error => {
@@ -472,6 +510,7 @@ export class RolesComponent implements OnInit {
             this.successMessage = 'Rol creado correctamente.';
           }
 
+          this.storageService.setRoles(this.roles);
           this.aplicarFiltros();
 
           this.modalRolVisible = false;
@@ -505,6 +544,9 @@ export class RolesComponent implements OnInit {
           this.roles = this.roles.filter(item => item.idrol !== rol.idrol);
           this.usuariosRoles = this.usuariosRoles.filter(item => item.rol !== rol.idrol);
           this.rolesRecursos = this.rolesRecursos.filter(item => item.rol !== rol.idrol);
+          this.storageService.setRoles(this.roles);
+          this.storageService.setUsuarioRoles(this.usuariosRoles);
+          this.storageService.setRolesRecursos(this.rolesRecursos);
           this.aplicarFiltros();
           this.successMessage = 'Rol eliminado correctamente.';
         },
@@ -588,6 +630,7 @@ export class RolesComponent implements OnInit {
             this.successMessage = 'Recurso creado correctamente.';
           }
 
+          this.storageService.setRecursos(this.recursos);
           this.aplicarFiltros();
 
           this.modalRecursoVisible = false;
@@ -620,6 +663,8 @@ export class RolesComponent implements OnInit {
         next: () => {
           this.recursos = this.recursos.filter(item => item.idRecursos !== recurso.idRecursos);
           this.rolesRecursos = this.rolesRecursos.filter(item => item.recurso !== recurso.idRecursos);
+          this.storageService.setRecursos(this.recursos);
+          this.storageService.setRolesRecursos(this.rolesRecursos);
           this.aplicarFiltros();
           this.successMessage = 'Recurso eliminado correctamente.';
         },
@@ -659,6 +704,7 @@ export class RolesComponent implements OnInit {
         .subscribe({
           next: (relacion) => {
             this.usuariosRoles = [relacion, ...this.usuariosRoles];
+            this.storageService.setUsuarioRoles(this.usuariosRoles);
             this.successMessage = 'Rol asignado correctamente.';
           },
           error: (error) => {
@@ -685,6 +731,7 @@ export class RolesComponent implements OnInit {
       .subscribe({
         next: () => {
           this.usuariosRoles = this.usuariosRoles.filter(item => item.id !== relacionExistente.id);
+          this.storageService.setUsuarioRoles(this.usuariosRoles);
           this.successMessage = 'Rol removido correctamente.';
         },
         error: (error) => {
@@ -723,6 +770,7 @@ export class RolesComponent implements OnInit {
         .subscribe({
           next: (relacion) => {
             this.rolesRecursos = [relacion, ...this.rolesRecursos];
+            this.storageService.setRolesRecursos(this.rolesRecursos);
             this.successMessage = 'Recurso asignado correctamente.';
           },
           error: (error) => {
@@ -748,6 +796,7 @@ export class RolesComponent implements OnInit {
       .subscribe({
         next: () => {
           this.rolesRecursos = this.rolesRecursos.filter(item => item.id !== relacionExistente.id);
+          this.storageService.setRolesRecursos(this.rolesRecursos);
           this.successMessage = 'Recurso removido correctamente.';
         },
         error: (error) => {

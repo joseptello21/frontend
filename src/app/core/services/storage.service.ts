@@ -4,6 +4,8 @@ import { Injectable } from '@angular/core';
 import { Usuario } from '../models/usuario.model';
 import { Rol } from '../models/rol.model';
 import { Recurso } from '../models/recurso.model';
+import { UsuarioRol } from '../models/usuario-rol.model';
+import { RolRecurso } from '../models/rol-recurso.model';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +17,8 @@ export class StorageService {
   private readonly USER_KEY = 'usuario';
   private readonly ROLES_KEY = 'roles';
   private readonly RECURSOS_KEY = 'recursos';
+  private readonly USUARIOS_ROLES_KEY = 'usuarios_roles';
+  private readonly ROLES_RECURSOS_KEY = 'roles_recursos';
 
   setToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
@@ -56,6 +60,24 @@ export class StorageService {
 
   getRecursos(): Recurso[] {
     const data = localStorage.getItem(this.RECURSOS_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  setUsuarioRoles(usuarioRoles: UsuarioRol[]): void {
+    localStorage.setItem(this.USUARIOS_ROLES_KEY, JSON.stringify(usuarioRoles));
+  }
+
+  getUsuarioRoles(): UsuarioRol[] {
+    const data = localStorage.getItem(this.USUARIOS_ROLES_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  setRolesRecursos(rolesRecursos: RolRecurso[]): void {
+    localStorage.setItem(this.ROLES_RECURSOS_KEY, JSON.stringify(rolesRecursos));
+  }
+
+  getRolesRecursos(): RolRecurso[] {
+    const data = localStorage.getItem(this.ROLES_RECURSOS_KEY);
     return data ? JSON.parse(data) : [];
   }
 
