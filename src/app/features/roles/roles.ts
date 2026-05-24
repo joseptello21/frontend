@@ -149,13 +149,25 @@ export class RolesComponent implements OnInit {
       )
       .subscribe({
         next: (data) => {
-          this.roles = data.roles ?? [];
-          this.recursos = data.recursos ?? [];
-          this.usuarios = data.usuarios ?? [];
-          this.usuariosRoles = data.usuariosRoles ?? [];
-          this.rolesRecursos = data.rolesRecursos ?? [];
+          const cachedRoles = this.storageService.getRoles();
+          const cachedRecursos = this.storageService.getRecursos();
+          const cachedUsuarioRoles = this.storageService.getUsuarioRoles();
+          const cachedRolesRecursos = this.storageService.getRolesRecursos();
 
-          // Guardar cached roles, recursos y relaciones después de cargar desde el backend
+          const backendRoles = data.roles ?? [];
+          const backendRecursos = data.recursos ?? [];
+          const backendUsuarios = data.usuarios ?? [];
+          const backendUsuarioRoles = data.usuariosRoles ?? [];
+          const backendRolesRecursos = data.rolesRecursos ?? [];
+
+          // Preferir caché local si el backend devuelve arrays vacíos
+          this.roles = (backendRoles.length === 0 && cachedRoles.length > 0) ? cachedRoles : backendRoles;
+          this.recursos = (backendRecursos.length === 0 && cachedRecursos.length > 0) ? cachedRecursos : backendRecursos;
+          this.usuarios = backendUsuarios; // usuarios no están cacheados por ahora
+          this.usuariosRoles = (backendUsuarioRoles.length === 0 && cachedUsuarioRoles.length > 0) ? cachedUsuarioRoles : backendUsuarioRoles;
+          this.rolesRecursos = (backendRolesRecursos.length === 0 && cachedRolesRecursos.length > 0) ? cachedRolesRecursos : backendRolesRecursos;
+
+          // Guardar en caché las colecciones que se usarán localmente
           this.storageService.setRoles(this.roles);
           this.storageService.setRecursos(this.recursos);
           this.storageService.setUsuarioRoles(this.usuariosRoles);
