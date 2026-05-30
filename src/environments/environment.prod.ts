@@ -1,4 +1,4 @@
-const railwayBackend = 'https://proyectodiploma-production.up.railway.app';
+const railwayBackend = 'https://proyectodiploma-production-81c7.up.railway.app';
 
 export const environment = {
   production: true,
