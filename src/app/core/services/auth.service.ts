@@ -31,7 +31,7 @@ export class AuthService {
     ) {}
 
     login(username: string, password: string): Observable<LoginResponse> {
-        const payload = { email: username, password };
+        const payload = { email: username, username, password };
         console.log('🔐 Attempting login with payload:', payload);
         
         return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, payload).pipe(
