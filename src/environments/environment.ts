@@ -1,4 +1,4 @@
-const localBackend = 'http://localhost:3000';
+const localBackend = 'http://localhost:3001';
 const railwayBackend = 'https://proyectodiploma-production-81c7.up.railway.app';
 
 export const environment = {
