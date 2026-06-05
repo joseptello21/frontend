@@ -92,7 +92,19 @@ export class RolesComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarDatosDesdeCache();
-    this.cargarDatos(true);
+    // Solo cargar desde backend si no hay datos en caché
+    const tieneCache = 
+      this.roles.length > 0 || 
+      this.recursos.length > 0 || 
+      this.usuariosRoles.length > 0 || 
+      this.rolesRecursos.length > 0;
+    
+    if (!tieneCache) {
+      this.cargarDatos(true);
+    } else {
+      // Si hay caché, aplicar filtros inmediatamente
+      this.aplicarFiltros();
+    }
   }
 
   private cargarDatosDesdeCache(): void {
@@ -733,7 +745,7 @@ export class RolesComponent implements OnInit {
       return;
     }
 
-    this.usuarioRolService.eliminar(relacionExistente.id)
+    this.usuarioRolService.eliminar(relacionExistente.usuario, relacionExistente.rol)
       .pipe(
         finalize(() => {
           this.processingRelationKey = null;
@@ -742,7 +754,7 @@ export class RolesComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-          this.usuariosRoles = this.usuariosRoles.filter(item => item.id !== relacionExistente.id);
+          this.usuariosRoles = this.usuariosRoles.filter(item => !(item.usuario === relacionExistente.usuario && item.rol === relacionExistente.rol));
           this.storageService.setUsuarioRoles(this.usuariosRoles);
           this.successMessage = 'Rol removido correctamente.';
         },
@@ -798,7 +810,7 @@ export class RolesComponent implements OnInit {
       return;
     }
 
-    this.rolRecursoService.eliminar(relacionExistente.id)
+    this.rolRecursoService.eliminar(relacionExistente.rol, relacionExistente.recurso)
       .pipe(
         finalize(() => {
           this.processingRelationKey = null;
@@ -807,7 +819,7 @@ export class RolesComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-          this.rolesRecursos = this.rolesRecursos.filter(item => item.id !== relacionExistente.id);
+          this.rolesRecursos = this.rolesRecursos.filter(item => !(item.rol === relacionExistente.rol && item.recurso === relacionExistente.recurso));
           this.storageService.setRolesRecursos(this.rolesRecursos);
           this.successMessage = 'Recurso removido correctamente.';
         },

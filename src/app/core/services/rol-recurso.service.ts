@@ -74,9 +74,9 @@ export class RolRecursoService {
     );
   }
 
-  eliminar(id: number): Observable<any> {
+  eliminar(rolId: number, recursoId: number): Observable<any> {
     return this.http.delete<any>(
-      `${this.apiUrl}${id}/`,
+      `${this.apiUrl}${rolId}/${recursoId}`,
       { headers: this.authHeaders.getAuthHeaders() }
     ).pipe(
       catchError(this.handleError)
