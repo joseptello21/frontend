@@ -435,6 +435,11 @@ export class DataViewComponent implements OnInit {
     });
   }
 
+  refrescar(): void {
+    this.loadTelemetryUpdate();
+    this.loadRealData();
+  }
+
   volverAlDashboard(): void {
     this.router.navigate(['/dashboard']);
   }
