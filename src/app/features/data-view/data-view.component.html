@@ -45,6 +45,7 @@
         <strong>Luminaria</strong>
         <p>ID: {{ latestTelemetry?.luminariaId || 'N/A' }}</p>
         <p>Estado: {{ getLuminariaState() }}</p>
+        <p>Potencia LED: {{ latestTelemetry?.energiaGenerada != null ? latestTelemetry?.energiaGenerada + ' W' : 'N/A' }}</p>
         <p>Manual: {{ latestTelemetry?.manualStatus ? 'Sí' : 'No' }}</p>
         <div class="control-buttons">
           <button class="btn btn-secondary" type="button" (click)="toggleManualLamp()" [disabled]="!latestTelemetry">
@@ -208,7 +209,7 @@
             <th>Panel</th>
             <th>Batería</th>
             <th>Luminaria</th>
-            <th>Energía generada</th>
+            <th>Potencia LED (W)</th>
           </tr>
         </thead>
         <tbody>
@@ -224,7 +225,7 @@
             <td>{{ item.panelId }}</td>
             <td>{{ item.batteryId }}</td>
             <td>{{ item.luminariaId || 'N/A' }}</td>
-            <td>{{ item.energiaGenerada != null ? item.energiaGenerada : 'N/A' }}</td>
+            <td>{{ item.energiaGenerada != null ? item.energiaGenerada + ' W' : 'N/A' }}</td>
           </tr>
           <tr *ngIf="telemetrias.length === 0">
             <td colspan="12" class="empty-state">No hay telemetría disponible</td>
